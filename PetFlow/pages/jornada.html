@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jornada do Rex - PetFlow</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <style>
+        .mobile-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background-color: white;
+            min-height: 100vh;
+            box-shadow: 0 0 30px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        /* Timeline Fixa Perfeita */
+        .timeline {
+            position: relative;
+            padding-left: 40px; /* Afasta o texto da linha */
+            list-style: none;
+            margin-top: 30px;
+            margin-bottom: 0;
+        }
+        
+        /* A Linha Vertical */
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 25px; /* Não deixa a linha vazar pra baixo */
+            left: 18px; /* Posição exata da linha */
+            width: 2px;
+            background: #E2E8F0;
+            z-index: 1;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        
+        /* Bolinha Cinza (Padrão/Futuro) */
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -28px; /* Centraliza a bolinha sobre a linha */
+            top: 4px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #E2E8F0;
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px #E2E8F0;
+            z-index: 2;
+        }
+
+        /* Bolinha Verde (Concluída) */
+        .timeline-item.completed::before {
+            background: var(--color-primary, #0D9488);
+            box-shadow: 0 0 0 2px var(--color-primary, #0D9488);
+        }
+
+        /* Bolinha Laranja (Ativa) */
+        .timeline-item.active::before {
+            background: var(--color-secondary, #F97316);
+            box-shadow: 0 0 0 2px var(--color-secondary, #F97316);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(249, 115, 22, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+        }
+
+        .carousel-indicators [data-bs-target] {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--color-primary, #0D9488);
+            opacity: 0.3;
+            margin: 0 4px;
+        }
+        .carousel-indicators .active {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-light-custom">
+
+    <div class="mobile-container pb-5">
+        
+        <header class="p-3 border-bottom bg-white sticky-top shadow-sm d-flex align-items-center justify-content-between">
+            <a href="../index.html" class="btn btn-link text-secondary p-0 text-decoration-none">
+                <i class="bi bi-arrow-left fs-4"></i>
+            </a>
+            <div class="text-center flex-grow-1">
+                <h6 class="fw-bold text-primary-custom mb-0">🐾 PetFlow</h6>
+                <small class="text-secondary" style="font-size: 0.75rem;">Acompanhamento em Tempo Real</small>
+            </div>
+            <div style="width: 24px;"></div>
+        </header>
+
+        <section class="p-4 text-center">
+            <div class="bg-primary-soft d-inline-flex justify-content-center align-items-center rounded-circle mb-3 border border-primary-subtle" style="width: 100px; height: 100px; font-size: 3rem;">
+                🐕
+            </div>
+            <h2 class="fw-bold text-dark mb-0">Rex</h2>
+            <p class="text-secondary mb-2">Golden Retriever • Tutor: João Medeiros</p>
+            
+            <div class="badge rounded-pill px-4 py-2 mt-2 shadow-sm" style="background-color: #FEF3C7; color: #D97706; font-size: 0.9rem;">
+                🔄 Status: No banho
+            </div>
+        </section>
+
+        <section class="px-4 mt-2">
+            <h6 class="fw-bold text-dark mb-4">Jornada de Hoje</h6>
+            
+            <ul class="timeline m-0">
+                <li class="timeline-item completed">
+                    <h6 class="fw-bold mb-1 text-dark">Chegou no Petshop</h6>
+                    <p class="small text-secondary mb-0">09:05 • Recebido com muita festa!</p>
+                </li>
+                <li class="timeline-item completed">
+                    <h6 class="fw-bold mb-1 text-dark">Aguardando Vez</h6>
+                    <p class="small text-secondary mb-0">09:15 • Brincando na área comum.</p>
+                </li>
+                <li class="timeline-item active">
+                    <h6 class="fw-bold mb-1 text-dark">Banho Iniciado</h6>
+                    <p class="small text-secondary mb-0">09:40 • Usando shampoo hipoalergênico.</p>
+                </li>
+                <li class="timeline-item">
+                    <h6 class="fw-semibold mb-1 text-muted">Secagem e Tosa</h6>
+                    <p class="small text-muted mb-0">Aguardando...</p>
+                </li>
+                <li class="timeline-item">
+                    <h6 class="fw-semibold mb-1 text-muted">Pronto para buscar!</h6>
+                    <p class="small text-muted mb-0">Avisaremos quando finalizar.</p>
+                </li>
+            </ul>
+        </section>
+
+        <section class="px-4 mt-5">
+            <div id="notasCarousel" class="carousel slide" data-bs-ride="false">
+                
+                <div class="carousel-inner shadow-sm rounded-4">
+                    <div class="carousel-item active">
+                        <div class="alert bg-primary-soft border-0 p-4 d-flex gap-3 align-items-start mb-0 h-100">
+                            <span class="fs-3">💡</span>
+                            <div>
+                                <h6 class="fw-bold text-primary-custom mb-1">Nota do Tosador</h6>
+                                <p class="small text-dark mb-0">O Rex está super calmo hoje. Notamos um pequeno nó na orelha direita, mas já vamos resolver com cuidado na tosa.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <div class="alert bg-warning-soft border-0 p-4 d-flex gap-3 align-items-start mb-0 h-100" style="background-color: #FFFBEB;">
+                            <span class="fs-3">📸</span>
+                            <div>
+                                <h6 class="fw-bold mb-1" style="color: #D97706;">Atualização</h6>
+                                <p class="small text-dark mb-0">Banho finalizado com sucesso! Ele adorou a água morna e se comportou super bem. Indo secar agora.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-3 px-2">
+                    <button class="btn btn-sm btn-link text-secondary text-decoration-none" type="button" data-bs-target="#notasCarousel" data-bs-slide="prev">
+                        <i class="bi bi-chevron-left"></i> Anterior
+                    </button>
+                    
+                    <div class="carousel-indicators position-static m-0">
+                        <button type="button" data-bs-target="#notasCarousel" data-bs-slide-to="0" class="active" aria-current="true"></button>
+                        <button type="button" data-bs-target="#notasCarousel" data-bs-slide-to="1"></button>
+                    </div>
+
+                    <button class="btn btn-sm btn-link text-primary-custom fw-bold text-decoration-none" type="button" data-bs-target="#notasCarousel" data-bs-slide="next">
+                        Próximo <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

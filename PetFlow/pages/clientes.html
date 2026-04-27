@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes - PetFlow</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-light-custom">
+
+    <div class="container-fluid">
+        <div class="row">
+            
+            <nav class="col-md-3 col-lg-2 d-md-block bg-white sidebar vh-100 shadow-sm fixed-top">
+                <div class="position-sticky pt-4 px-3 d-flex flex-column h-100">
+                    <h4 class="fw-bold text-primary-custom mb-5 text-center">🐾 PetFlow</h4>
+                    
+                    <ul class="nav flex-column gap-2 mb-auto">
+                        <li class="nav-item">
+                            <a class="nav-link text-secondary fw-semibold px-3" href="dashboard.html">📊 Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link bg-primary-soft text-primary-custom fw-bold rounded-3 px-3" href="clientes.html">👥 Clientes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-secondary fw-semibold px-3" href="pets.html">🐕 Pets</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-secondary fw-semibold px-3" href="agendamentos.html">📅 Agendamentos</a>
+                        </li>
+                    </ul>
+
+                    <div class="mt-auto pb-4 pt-3 border-top">
+                        <a class="btn btn-outline-danger w-100 rounded-pill fw-bold btn-sm" href="../index.html">
+                            Sair do Sistema
+                        </a>
+                    </div>
+                </div>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-5 pt-4 pb-5">
+                
+                <header class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-5 gap-3">
+                    <div>
+                        <h2 class="fw-bold text-dark mb-1">Gestão de Clientes</h2>
+                        <p class="text-secondary small mb-0">Cadastre e gerencie os tutores dos pets.</p>
+                    </div>
+                    
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="input-group shadow-sm" style="max-width: 250px;">
+                            <span class="input-group-text bg-white border-end-0 rounded-start-pill text-secondary">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0 rounded-end-pill" placeholder="Buscar por nome ou CPF...">
+                        </div>
+                        <button class="btn btn-primary-custom rounded-pill px-4 fw-bold shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalCliente">
+                            + Novo Cliente
+                        </button>
+                    </div>
+                </header>
+
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-body px-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="ps-4 border-0 text-secondary small">Nome do Cliente</th>
+                                        <th class="border-0 text-secondary small">Contato</th>
+                                        <th class="border-0 text-secondary small">Pet(s)</th>
+                                        <th class="text-end pe-4 border-0 text-secondary small">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="ps-4 fw-bold text-dark">João Medeiros</td>
+                                        <td>
+                                            <div class="d-flex flex-column">
+                                                <span>(82) 99999-1111</span>
+                                                <small class="text-secondary">joao@email.com</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-primary-custom border border-primary-subtle rounded-pill px-3 py-2">
+                                                🐕 Rex
+                                            </span>
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <button class="btn btn-sm btn-light text-secondary rounded-pill border px-3 fw-semibold">Editar</button>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td class="ps-4 fw-bold text-dark">Maria Lins</td>
+                                        <td>
+                                            <div class="d-flex flex-column">
+                                                <span>(82) 98888-2222</span>
+                                                <small class="text-secondary">maria@email.com</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-primary-custom border border-primary-subtle rounded-pill px-3 py-2">
+                                                🐈 Mia
+                                            </span>
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <button class="btn btn-sm btn-light text-secondary rounded-pill border px-3 fw-semibold">Editar</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalCliente" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header border-0 pt-4 px-4 pb-0">
+                    <h5 class="fw-bold text-dark">Cadastrar Novo Cliente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-secondary">Nome Completo</label>
+                                <input type="text" class="form-control rounded-3" placeholder="Ex: José da Silva">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-secondary">Telefone / WhatsApp</label>
+                                <input type="text" class="form-control rounded-3" placeholder="(82) 90000-0000">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-secondary">E-mail</label>
+                                <input type="email" class="form-control rounded-3" placeholder="email@exemplo.com">
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary-custom w-100 rounded-pill py-2 fw-bold mt-4 shadow-sm">
+                            Salvar Cliente
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/script.js"></script>
+</body>
+</html>

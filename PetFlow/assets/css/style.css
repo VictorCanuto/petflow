@@ -1,0 +1,66 @@
+/* Importando a Fonte */
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Paleta de Cores PetFlow */
+:root {
+    --color-primary: #0D9488; /* Verde-azulado moderno e confiável */
+    --color-secondary: #F97316; /* Laranja vibrante para botões */
+    --color-bg: #F8FAFC; /* Cinza super claro, quase azulado */
+}
+
+/* Utilitários Customizados para complementar o Bootstrap */
+.bg-light-custom {
+    background-color: var(--color-bg);
+}
+
+.text-primary-custom {
+    color: var(--color-primary) !important;
+}
+
+.bg-primary-soft {
+    background-color: #CCFBF1; /* Fundo clarinho para a tag superior */
+}
+
+/* Botões */
+.btn-primary-custom {
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-primary-custom:hover {
+    background-color: #0F766E;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(13, 148, 136, 0.3) !important;
+}
+
+.btn-secondary-custom {
+    background-color: var(--color-secondary);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary-custom:hover {
+    background-color: #EA580C;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3) !important;
+}
+
+/* Ajuste fino na altura do Hero */
+.min-vh-75 {
+    min-height: 75vh;
+}
+
+/* Imagem flutuante leve */
+.hero-image {
+    transition: transform 0.5s ease;
+}
+.hero-image:hover {
+    transform: scale(1.02);
+}

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pets - PetFlow</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .transition-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .transition-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; }
+    </style>
+</head>
+<body class="bg-light-custom">
+
+    <div class="container-fluid">
+        <div class="row">
+            
+            <nav class="col-md-3 col-lg-2 d-md-block bg-white sidebar vh-100 shadow-sm fixed-top">
+                <div class="position-sticky pt-4 px-3 d-flex flex-column h-100">
+                    <h4 class="fw-bold text-primary-custom mb-5 text-center">🐾 PetFlow</h4>
+                    
+                    <ul class="nav flex-column gap-2 mb-auto">
+                        <li class="nav-item">
+                            <a class="nav-link text-secondary fw-semibold px-3" href="dashboard.html">📊 Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-secondary fw-semibold px-3" href="clientes.html">👥 Clientes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link bg-primary-soft text-primary-custom fw-bold rounded-3 px-3" href="pets.html">🐕 Pets</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-secondary fw-semibold px-3" href="agendamentos.html">📅 Agendamentos</a>
+                        </li>
+                    </ul>
+
+                    <div class="mt-auto pb-4 pt-3 border-top">
+                        <a class="btn btn-outline-danger w-100 rounded-pill fw-bold btn-sm" href="../index.html">
+                            Sair do Sistema
+                        </a>
+                    </div>
+                </div>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-5 pt-4 pb-5">
+                
+                <header class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-5 gap-3">
+                    <div>
+                        <h2 class="fw-bold text-dark mb-1">Galeria de Pets</h2>
+                        <p class="text-secondary small mb-0">Acompanhe os animais cadastrados no sistema.</p>
+                    </div>
+                    
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="input-group shadow-sm" style="max-width: 250px;">
+                            <span class="input-group-text bg-white border-end-0 rounded-start-pill text-secondary">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0 rounded-end-pill" placeholder="Buscar pet...">
+                        </div>
+                        <button class="btn btn-primary-custom rounded-pill px-4 fw-bold shadow-sm text-nowrap">
+                            + Cadastrar Pet
+                        </button>
+                    </div>
+                </header>
+
+                <div class="row g-4">
+                    
+                    <div class="col-md-6 col-lg-4 col-xl-3">
+                        <div class="card border-0 shadow-sm rounded-4 h-100 position-relative p-3 transition-hover">
+                            
+                            <span class="position-absolute top-0 end-0 mt-3 me-3 badge rounded-pill" 
+                                  style="background-color: #DCFCE7; color: #166534; cursor: help;"
+                                  data-bs-toggle="tooltip" 
+                                  data-bs-placement="top" 
+                                  data-bs-title="Vacinado: Antirrábica e V10 (Mar/2026)">
+                                <i class="bi bi-shield-check me-1"></i> Vacinado
+                            </span>
+                            
+                            <div class="d-flex flex-column align-items-center mt-3 mb-3">
+                                <div class="bg-primary-soft d-flex justify-content-center align-items-center rounded-circle mb-3 border border-primary-subtle" style="width: 80px; height: 80px; font-size: 2rem;">
+                                    🐕
+                                </div>
+                                <h5 class="fw-bold text-dark mb-0">Rex</h5>
+                                <small class="text-secondary">Golden Retriever</small>
+                            </div>
+                            <hr class="text-secondary opacity-25">
+                            <div class="px-2">
+                                <p class="mb-1 small text-secondary"><strong>Tutor:</strong> João Medeiros</p>
+                                <p class="mb-3 small text-secondary"><strong>Idade:</strong> 3 anos</p>
+                            </div>
+                            <div class="mt-auto">
+                                <button class="btn btn-light w-100 rounded-pill btn-sm fw-bold text-primary-custom border">Editar Perfil</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-lg-4 col-xl-3">
+                        <div class="card border-0 shadow-sm rounded-4 h-100 position-relative p-3 transition-hover">
+                            
+                            <div class="position-absolute top-0 end-0 mt-3 me-3 d-flex flex-column gap-1 align-items-end">
+                                <span class="badge rounded-pill" 
+                                      style="background-color: #FEE2E2; color: #991B1B; cursor: help;"
+                                      data-bs-toggle="tooltip" 
+                                      data-bs-placement="top" 
+                                      data-bs-title="Atenção: Alergia a shampoo com perfume forte.">
+                                    <i class="bi bi-exclamation-triangle me-1"></i> Alergia
+                                </span>
+                                <span class="badge rounded-pill" 
+                                      style="background-color: #DCFCE7; color: #166534; cursor: help;"
+                                      data-bs-toggle="tooltip" 
+                                      data-bs-placement="left" 
+                                      data-bs-title="Vacinado: V4 (Fev/2026)">
+                                    <i class="bi bi-shield-check"></i> Vacinado
+                                </span>
+                            </div>
+                            
+                            <div class="d-flex flex-column align-items-center mt-3 mb-3">
+                                <div class="bg-warning-soft d-flex justify-content-center align-items-center rounded-circle mb-3 border" style="width: 80px; height: 80px; font-size: 2rem; background-color: #FEF3C7; border-color: #FCD34D !important;">
+                                    🐈
+                                </div>
+                                <h5 class="fw-bold text-dark mb-0">Mia</h5>
+                                <small class="text-secondary">Siamês</small>
+                            </div>
+                            <hr class="text-secondary opacity-25">
+                            <div class="px-2">
+                                <p class="mb-1 small text-secondary"><strong>Tutor:</strong> Maria Lins</p>
+                                <p class="mb-3 small text-secondary"><strong>Idade:</strong> 1 ano</p>
+                            </div>
+                            <div class="mt-auto">
+                                <button class="btn btn-light w-100 rounded-pill btn-sm fw-bold text-primary-custom border">Editar Perfil</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/script.js"></script>
+</body>
+</html>
