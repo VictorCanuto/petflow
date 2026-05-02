@@ -1,36 +1,80 @@
-/* Importando a Fonte */
+/* =======================================================
+   1. CONFIGURAÇÕES GLOBAIS E VARIÁVEIS
+   ======================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
 body {
     font-family: 'Poppins', sans-serif;
 }
 
-/* Paleta de Cores PetFlow */
 :root {
-    --color-primary: #0D9488; /* Verde-azulado moderno e confiável */
-    --color-secondary: #F97316; /* Laranja vibrante para botões */
-    --color-bg: #F8FAFC; /* Cinza super claro, quase azulado */
+    /* Cores Principais */
+    --color-primary: #0D9488; 
+    --color-secondary: #F97316; 
+    --color-bg: #F8FAFC; 
+    
+    /* Cores de Status (Para Badges e Ícones) */
+    --status-warning-bg: #FEF3C7;
+    --status-warning-text: #D97706;
+    --status-warning-border: #FCD34D;
+    
+    --status-success-bg: #DCFCE7;
+    --status-success-text: #166534;
+    
+    --status-danger-bg: #FEE2E2;
+    --status-danger-text: #991B1B;
 }
 
-/* Utilitários Customizados para complementar o Bootstrap */
-.bg-light-custom {
-    background-color: var(--color-bg);
+/* =======================================================
+   2. UTILITÁRIOS CUSTOMIZADOS (Limpa o HTML)
+   ======================================================= */
+.bg-light-custom { background-color: var(--color-bg); }
+.text-primary-custom { color: var(--color-primary) !important; }
+.bg-primary-soft { background-color: #CCFBF1; }
+
+/* Classes de Status prontas para uso */
+.badge-warning-custom {
+    background-color: var(--status-warning-bg) !important;
+    color: var(--status-warning-text) !important;
+}
+.badge-success-custom {
+    background-color: var(--status-success-bg) !important;
+    color: var(--status-success-text) !important;
+}
+.badge-danger-custom {
+    background-color: var(--status-danger-bg) !important;
+    color: var(--status-danger-text) !important;
 }
 
-.text-primary-custom {
-    color: var(--color-primary) !important;
+/* Caixas de Avatar Redondas (Substitui os styles inlines) */
+.avatar-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+}
+.avatar-sm { width: 35px; height: 35px; }
+.avatar-md { width: 40px; height: 40px; }
+.avatar-lg { width: 80px; height: 80px; font-size: 2rem; }
+
+.avatar-dog {
+    background-color: #CCFBF1;
+    border: 1px solid #99F6E4; /* primary-subtle */
+}
+.avatar-cat {
+    background-color: var(--status-warning-bg);
+    border: 1px solid var(--status-warning-border);
 }
 
-.bg-primary-soft {
-    background-color: #CCFBF1; /* Fundo clarinho para a tag superior */
-}
-
-/* Botões */
+/* =======================================================
+   3. BOTÕES E ANIMAÇÕES
+   ======================================================= */
 .btn-primary-custom {
     background-color: var(--color-primary);
     color: white;
     border: none;
     transition: all 0.3s ease;
 }
-
 .btn-primary-custom:hover {
     background-color: #0F766E;
     color: white;
@@ -44,7 +88,6 @@ body {
     border: none;
     transition: all 0.3s ease;
 }
-
 .btn-secondary-custom:hover {
     background-color: #EA580C;
     color: white;
@@ -52,93 +95,88 @@ body {
     box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3) !important;
 }
 
-/* Ajuste fino na altura do Hero */
-.min-vh-75 {
-    min-height: 75vh;
+.transition-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.transition-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; }
+
+/* =======================================================
+   4. COMPONENTES ESPECÍFICOS (Jornada e Hero)
+   ======================================================= */
+.min-vh-75 { min-height: 75vh; }
+.hero-image { transition: transform 0.5s ease; }
+.hero-image:hover { transform: scale(1.02); }
+
+.mobile-container {
+    max-width: 480px;
+    margin: 0 auto;
+    background-color: white;
+    min-height: 100vh;
+    box-shadow: 0 0 30px rgba(0,0,0,0.05);
+    position: relative;
 }
 
-/* Imagem flutuante leve */
-.hero-image {
-    transition: transform 0.5s ease;
+/* Timeline Fixa Perfeita */
+.timeline {
+    position: relative;
+    padding-left: 40px;
+    list-style: none;
+    margin-top: 30px;
+    margin-bottom: 0;
 }
-.hero-image:hover {
-    transform: scale(1.02);
+.timeline::before {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 25px; left: 18px;
+    width: 2px; background: #E2E8F0; z-index: 1;
+}
+.timeline-item { position: relative; margin-bottom: 2rem; }
+.timeline-item::before {
+    content: ''; position: absolute;
+    left: -28px; top: 4px; width: 14px; height: 14px;
+    border-radius: 50%; background: #E2E8F0;
+    border: 2px solid white; box-shadow: 0 0 0 2px #E2E8F0; z-index: 2;
+}
+.timeline-item.completed::before {
+    background: var(--color-primary); box-shadow: 0 0 0 2px var(--color-primary);
+}
+.timeline-item.active::before {
+    background: var(--color-secondary); box-shadow: 0 0 0 2px var(--color-secondary);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(249, 115, 22, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
 }
 
 /* =======================================================
-   RESPONSIVIDADE: MODO APP MOBILE (Telas menores que 768px)
+   5. RESPONSIVIDADE: MODO APP MOBILE (Telas < 768px)
    ======================================================= */
 @media (max-width: 767.98px) {
-    
     .sidebar {
-        position: fixed !important;
-        top: auto !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 75px !important;
-        z-index: 1050;
-        padding: 0 !important;
-        border-right: none !important;
-        border-top: 1px solid #e2e8f0;
+        position: fixed !important; top: auto !important; bottom: 0 !important; left: 0 !important;
+        width: 100% !important; height: 75px !important; z-index: 1050; padding: 0 !important;
+        border-right: none !important; border-top: 1px solid #e2e8f0;
         box-shadow: 0 -5px 10px rgba(0,0,0,0.05) !important;
     }
-    
     .sidebar .position-sticky {
-        padding: 0 !important;
-        height: 100% !important;
-        display: flex !important;
-        flex-direction: row !important;
+        padding: 0 !important; height: 100% !important; display: flex !important; flex-direction: row !important;
     }
-
-    .sidebar h4, 
-    .sidebar .mt-auto {
-        display: none !important;
-    }
-
+    .sidebar h4, .sidebar .mt-auto { display: none !important; }
     .sidebar .nav {
-        flex-direction: row !important;
-        width: 100% !important;
-        justify-content: space-around !important;
-        align-items: center !important;
-        margin: 0 !important;
+        flex-direction: row !important; width: 100% !important;
+        justify-content: space-around !important; align-items: center !important; margin: 0 !important;
     }
-
-    .sidebar .nav-item {
-        flex: 1;
-        text-align: center;
-    }
-
+    .sidebar .nav-item { flex: 1; text-align: center; }
     .sidebar .nav-link {
-        padding: 10px 2px !important;
-        font-size: 0.65rem !important;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        padding: 10px 2px !important; font-size: 0.65rem !important; white-space: nowrap;
+        overflow: hidden; text-overflow: ellipsis;
     }
-    
     .sidebar .nav-link.bg-primary-soft {
-        background-color: transparent !important;
-        color: var(--color-primary) !important;
-        border-top: 3px solid var(--color-primary);
-        border-radius: 0 !important;
-        font-weight: 800 !important;
+        background-color: transparent !important; color: var(--color-primary) !important;
+        border-top: 3px solid var(--color-primary); border-radius: 0 !important; font-weight: 800 !important;
     }
-
-    main {
-        padding-bottom: 100px !important; 
-        padding-left: 20px !important;
-        padding-right: 20px !important;
-    }
-    
-    header {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 15px !important;
-    }
-    
-    header .d-flex {
-        width: 100%;
-        justify-content: space-between;
-    }
+    main { padding-bottom: 100px !important; padding-left: 20px !important; padding-right: 20px !important; }
+    header { flex-direction: column !important; align-items: flex-start !important; gap: 15px !important; }
+    header .d-flex { width: 100%; justify-content: space-between; }
 }

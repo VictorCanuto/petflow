@@ -37,7 +37,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // =========================================================
     // 2. TROCA DE STATUS DA TABELA E DO MODAL
     // =========================================================
-    // Usamos a classe específica que adicionamos no HTML agora
     const botoesMudarStatus = document.querySelectorAll('.btn-status-opcao');
 
     botoesMudarStatus.forEach(btn => {
@@ -54,19 +53,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (badgeAlvo) {
+                // Limpa as classes antigas do badge
+                badgeAlvo.className = 'badge rounded-pill px-3 py-2 shadow-sm';
+
+                // Aplica a nova classe e texto dependendo do status
                 if (novoStatusTextoOriginal.includes('Finalizar')) {
-                    badgeAlvo.className = 'badge rounded-pill px-3 py-2 shadow-sm';
-                    badgeAlvo.style.cssText = 'background-color: #DCFCE7; color: #166534;';
+                    badgeAlvo.classList.add('badge-success-custom');
                     badgeAlvo.innerHTML = '<i class="bi bi-check-circle me-1"></i> Finalizado';
                 } 
                 else if (novoStatusTextoOriginal.includes('Iniciar') || novoStatusTextoOriginal.includes('Banho')) {
-                    badgeAlvo.className = 'badge rounded-pill px-3 py-2 shadow-sm';
-                    badgeAlvo.style.cssText = 'background-color: #FEF3C7; color: #D97706;';
+                    badgeAlvo.classList.add('badge-warning-custom');
                     badgeAlvo.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Em atendimento';
                 } 
                 else if (novoStatusTextoOriginal.includes('Chegou')) {
                     badgeAlvo.className = 'badge rounded-pill px-3 py-2 bg-light text-secondary border';
-                    badgeAlvo.style.cssText = '';
                     badgeAlvo.innerHTML = '<i class="bi bi-house me-1"></i> Aguardando';
                 }
             }
@@ -77,21 +77,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
             todosBotoes.forEach(b => {
                 b.className = 'btn btn-light text-start border rounded-3 fw-semibold text-secondary btn-status-opcao';
-                b.style.cssText = '';
                 b.innerText = b.innerText.replace(' (Atual)', '').trim();
 
                 if (b.innerText.includes('Finalizar')) {
-                    b.className = 'btn text-start border rounded-3 fw-bold btn-status-opcao';
-                    b.style.cssText = 'background-color: #DCFCE7; color: #166534;';
+                    b.classList.remove('btn-light', 'text-secondary');
+                    b.classList.add('badge-success-custom');
                 }
             });
 
-            // Pinta o que foi clicado
-            this.className = 'btn text-start border rounded-3 fw-bold shadow-sm btn-status-opcao';
-            this.style.cssText = 'background-color: #FEF3C7; color: #D97706; border-color: #FCD34D !important;';
+            // Pinta o botão que foi clicado
+            this.className = 'btn text-start border rounded-3 fw-bold shadow-sm btn-status-opcao badge-warning-custom border-warning';
             this.innerText = novoStatusTextoOriginal + ' (Atual)';
-            
-            // O HTML vai fechar a janela sozinho agora!
         });
     });
 
