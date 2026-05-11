@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             todosBotoes.forEach(b => {
                 b.className = 'btn btn-light text-start border rounded-3 fw-semibold text-secondary btn-status-opcao';
-                b.innerText = b.innerText.replace(' (Atual)', '').trim();
+                b.innerHTML = b.innerHTML.replace(' (Atual)', '').trim();
 
                 if (b.innerText.includes('Finalizar')) {
                     b.classList.remove('btn-light', 'text-secondary');
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Pinta o botão que foi clicado
             this.className = 'btn text-start border rounded-3 fw-bold shadow-sm btn-status-opcao badge-warning-custom border-warning';
-            this.innerText = novoStatusTextoOriginal + ' (Atual)';
+            this.innerHTML = novoStatusTextoOriginal + ' <small class="text-muted fw-normal">(Atual)</small>';
         });
     });
 
