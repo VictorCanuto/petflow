@@ -57,9 +57,7 @@
                             </span>
                             <input type="text" class="form-control border-start-0 rounded-end-pill" placeholder="Buscar por nome ou CPF...">
                         </div>
-                        <button class="btn btn-primary-custom rounded-pill px-4 fw-bold shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalCliente">
-                            + Novo Cliente
-                        </button>
+                        <button onclick="prepararNovoCliente()" class="btn btn-primary-custom..." data-bs-toggle="modal" data-bs-target="#modalCliente"> + Novo Cliente </button>
                     </div>
                 </header>
 
@@ -75,43 +73,8 @@
                                         <th class="text-end pe-4 border-0 text-secondary small">Ações</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="ps-4 fw-bold text-dark">João Medeiros</td>
-                                        <td>
-                                            <div class="d-flex flex-column">
-                                                <span>(82) 99999-1111</span>
-                                                <small class="text-secondary">joao@email.com</small>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-light text-primary-custom border border-primary-subtle rounded-pill px-3 py-2">
-                                                🐕 Rex
-                                            </span>
-                                        </td>
-                                        <td class="text-end pe-4">
-                                            <button class="btn btn-sm btn-light text-secondary rounded-pill border px-3 fw-semibold">Editar</button>
-                                        </td>
-                                    </tr>
-                                    
-                                    <tr>
-                                        <td class="ps-4 fw-bold text-dark">Maria Lins</td>
-                                        <td>
-                                            <div class="d-flex flex-column">
-                                                <span>(82) 98888-2222</span>
-                                                <small class="text-secondary">maria@email.com</small>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-light text-primary-custom border border-primary-subtle rounded-pill px-3 py-2">
-                                                🐈 Mia
-                                            </span>
-                                        </td>
-                                        <td class="text-end pe-4">
-                                            <button class="btn btn-sm btn-light text-secondary rounded-pill border px-3 fw-semibold">Editar</button>
-                                        </td>
-                                    </tr>
-                                </tbody>
+                                <tbody id="tabelaClientes">
+                            </tbody>
                             </table>
                         </div>
                     </div>
@@ -125,26 +88,31 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 rounded-4 shadow">
                 <div class="modal-header border-0 pt-4 px-4 pb-0">
-                    <h5 class="fw-bold text-dark">Cadastrar Novo Cliente</h5>
+                    <h5 class="fw-bold text-dark" id="tituloModalCliente">Cadastrar Novo Cliente</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <form>
+                    <form id="formNovoCliente">
+                        <input type="hidden" id="idClienteId">
                         <div class="row g-3">
                             <div class="col-12">
                                 <label class="form-label small fw-bold text-secondary">Nome Completo</label>
-                                <input type="text" class="form-control rounded-3" placeholder="Ex: José da Silva">
+                                <input type="text" id="nomeCliente" class="form-control rounded-3" placeholder="Ex: José da Silva" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-secondary">CPF</label>
+                                <input type="text" id="cpfCliente" class="form-control rounded-3" placeholder="000.000.000-00" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-secondary">Telefone / WhatsApp</label>
-                                <input type="text" class="form-control rounded-3" placeholder="(82) 90000-0000">
+                                <input type="text" id="telefoneCliente" class="form-control rounded-3" placeholder="(82) 90000-0000" required>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-12">
                                 <label class="form-label small fw-bold text-secondary">E-mail</label>
-                                <input type="email" class="form-control rounded-3" placeholder="email@exemplo.com">
+                                <input type="email" id="emailCliente" class="form-control rounded-3" placeholder="email@exemplo.com">
                             </div>
                         </div>
-                        <button type="button" class="btn btn-primary-custom w-100 rounded-pill py-2 fw-bold mt-4 shadow-sm">
+                        <button type="submit" class="btn btn-primary-custom w-100 rounded-pill py-2 fw-bold mt-4 shadow-sm" id="btnSalvarCliente">
                             Salvar Cliente
                         </button>
                     </form>
