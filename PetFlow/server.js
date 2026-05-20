@@ -41,6 +41,10 @@ app.get('/', (req, res) => {
     res.send('🐾 API do PetFlow está rodando 100%!');
 });
 
+//=========================
+//CRUD DE CLIENTES
+//=========================
+
 // ==========================================
 // C - CREATE: Rota para cadastrar um Cliente
 // ==========================================
@@ -121,6 +125,48 @@ app.delete('/clientes/:id', (req, res) => {
             return res.status(404).json({ erro: 'Cliente não encontrado.' });
         }
         res.json({ mensagem: '🗑️ Cliente excluído com sucesso!' });
+    });
+});
+
+// ==========================================
+// CRUD DE PETS
+// ==========================================
+
+// 1. C - CREATE: Rota para cadastrar um Pet
+app.post('/pets', (req, res) => {
+    const { id_cliente, nome, especie, raca, idade, observacoes_saude } = req.body;
+
+    const sql = `INSERT INTO Pet (id_cliente, nome, especie, raca, idade, observacoes_saude) 
+                 VALUES (?, ?, ?, ?, ?, ?)`;
+
+    db.run(sql, [id_cliente, nome, especie, raca, idade, observacoes_saude], function(err) {
+        if (err) {
+            console.error(err.message);
+            return res.status(500).json({ erro: 'Erro ao cadastrar o pet.' });
+        }
+        res.status(201).json({
+            mensagem: '🐕 Pet cadastrado com sucesso!',
+            id_pet: this.lastID
+        });
+    });
+});
+
+// 2. R - READ: Rota para buscar todos os Pets (com o nome do dono!)
+app.get('/pets', (req, res) => {
+    // Usamos JOIN para trazer os dados do Pet JUNTO com o nome do Tutor
+    const sql = `
+        SELECT Pet.*, Cliente.nome_completo AS nome_tutor 
+        FROM Pet 
+        JOIN Cliente ON Pet.id_cliente = Cliente.id_cliente 
+        ORDER BY Pet.id_pet DESC
+    `;
+    
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            console.error(err.message);
+            return res.status(500).json({ erro: 'Erro ao buscar pets.' });
+        }
+        res.json(rows);
     });
 });
 
