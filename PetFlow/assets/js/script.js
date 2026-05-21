@@ -9,6 +9,76 @@ document.addEventListener('DOMContentLoaded', function() {
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
     // =========================================================
+    // 0.1 MOTOR DO MODAL UNIVERSAL (Alerta e Confirmação)
+    // =========================================================
+    const modalUniversalHTML = `
+    <div class="modal fade" id="modalUniversal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-body p-4 text-center">
+                    <div id="modalUniversalIcone" class="mb-3"></div>
+                    <h5 class="fw-bold text-dark mb-2" id="modalUniversalTitulo"></h5>
+                    <p class="text-secondary mb-4 small" id="modalUniversalMensagem"></p>
+                    <div class="d-flex gap-2 justify-content-center" id="modalUniversalBotoes">
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>`;
+    
+    // Injeta o HTML "escondido" dentro da página atual
+    document.body.insertAdjacentHTML('beforeend', modalUniversalHTML);
+    const modalUnivElement = document.getElementById('modalUniversal');
+    const modalUniversal = new bootstrap.Modal(modalUnivElement);
+
+    // FUNÇÃO 1: ALERTA BONITO (Substitui o alert)
+    window.mostrarAlerta = function(mensagem, titulo = 'Aviso', isErro = false) {
+        document.getElementById('modalUniversalTitulo').innerText = titulo;
+        document.getElementById('modalUniversalMensagem').innerText = mensagem;
+        document.getElementById('modalUniversalIcone').innerHTML = isErro 
+            ? '<i class="bi bi-x-circle-fill text-danger" style="font-size: 3rem;"></i>' 
+            : '<i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>';
+        
+        document.getElementById('modalUniversalBotoes').innerHTML = `
+            <button type="button" class="btn btn-primary-custom px-4 rounded-pill fw-bold w-100" data-bs-dismiss="modal">OK</button>
+        `;
+        modalUniversal.show();
+    };
+
+    // FUNÇÃO 2: CONFIRMAÇÃO BONITA (Substitui o confirm)
+    window.mostrarConfirmacao = function(mensagem, titulo = 'Atenção') {
+        return new Promise((resolve) => {
+            document.getElementById('modalUniversalTitulo').innerText = titulo;
+            document.getElementById('modalUniversalMensagem').innerText = mensagem;
+            document.getElementById('modalUniversalIcone').innerHTML = '<i class="bi bi-exclamation-triangle-fill text-warning" style="font-size: 3rem;"></i>';
+            
+            document.getElementById('modalUniversalBotoes').innerHTML = `
+                <button type="button" class="btn btn-light border px-4 rounded-pill fw-bold text-secondary w-50" data-bs-dismiss="modal" id="btnUniversalCancelar">Cancelar</button>
+                <button type="button" class="btn btn-danger px-4 rounded-pill fw-bold shadow-sm w-50" id="btnUniversalConfirmar">Excluir</button>
+            `;
+            
+            modalUniversal.show();
+
+            // Se clicar em Excluir
+            document.getElementById('btnUniversalConfirmar').onclick = () => {
+                modalUniversal.hide();
+                resolve(true);
+            };
+
+            // Se clicar em Cancelar
+            document.getElementById('btnUniversalCancelar').onclick = () => {
+                resolve(false);
+            };
+
+            // Se fechar clicando fora da caixa ou no ESC
+            modalUnivElement.addEventListener('hidden.bs.modal', function onHide() {
+                resolve(false);
+                modalUnivElement.removeEventListener('hidden.bs.modal', onHide);
+            }, { once: true });
+        });
+    };
+
+    // =========================================================
     // 1. C (CREATE) - SALVAR NOVO CLIENTE DE VERDADE
     // =========================================================
     const formCliente = document.getElementById('formNovoCliente');
@@ -138,22 +208,57 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Função global para excluir cliente
     window.excluirCliente = async function(id) {
-        // Confirmação de segurança antes de apagar
-        if (confirm('Tem certeza que deseja excluir este cliente? Todos os pets e agendamentos dele também serão apagados.')) {
+        const confirmou = await mostrarConfirmacao('Todos os pets e agendamentos deste cliente também serão apagados.', 'Excluir Cliente?');
+        
+        if (confirmou) {
             try {
-                const resposta = await fetch(`http://localhost:3000/clientes/${id}`, {
-                    method: 'DELETE'
-                });
+                const resposta = await fetch(`http://localhost:3000/clientes/${id}`, { method: 'DELETE' });
 
                 if (resposta.ok) {
-                    // Recarrega a tabela para o cliente sumir instantaneamente da tela
+                    mostrarAlerta('Cliente excluído com sucesso!', 'Tudo certo!');
                     carregarClientes();
                 } else {
                     const resultado = await resposta.json();
-                    alert('Erro: ' + resultado.erro);
+                    mostrarAlerta(resultado.erro, 'Ops, ocorreu um erro', true);
                 }
             } catch (erro) {
-                alert('Erro ao se comunicar com o servidor.');
+                mostrarAlerta('Erro ao se comunicar com o servidor.', 'Erro de Conexão', true);
+            }
+        }
+    };
+
+    // D. FUNÇÃO PARA PREENCHER O MODAL AO CLICAR EM "EDITAR PERFIL"
+    window.abrirModalEdicaoPet = function(pet) {
+        // Muda o título e guarda o ID invisível
+        document.getElementById('tituloModalPet').innerText = 'Editar Perfil do Pet';
+        document.getElementById('idPetId').value = pet.id_pet;
+        
+        // Preenche as caixas de texto com os dados do banco
+        document.getElementById('clienteIdPet').value = pet.id_cliente;
+        document.getElementById('nomePet').value = pet.nome;
+        document.getElementById('especiePet').value = pet.especie;
+        document.getElementById('racaPet').value = pet.raca || '';
+        document.getElementById('idadePet').value = pet.idade || '';
+        document.getElementById('obsPet').value = pet.observacoes_saude || '';
+    };
+
+    // E. FUNÇÃO PARA EXCLUIR O PET
+    window.excluirPet = async function(id) {
+        const confirmou = await mostrarConfirmacao('O histórico deste animal será perdido.', 'Excluir Pet?');
+        
+        if (confirmou) {
+            try {
+                const resposta = await fetch(`http://localhost:3000/pets/${id}`, { method: 'DELETE' });
+
+                if (resposta.ok) {
+                    mostrarAlerta('Pet removido da galeria.', 'Tudo certo!');
+                    carregarPets(); 
+                } else {
+                    const resultado = await resposta.json();
+                    mostrarAlerta(resultado.erro, 'Erro', true);
+                }
+            } catch (erro) {
+                mostrarAlerta('Erro ao se comunicar com o servidor.', 'Erro', true);
             }
         }
     };
@@ -272,3 +377,144 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
 });
+
+
+    // =========================================================
+    // MODULO PETS: 
+    // =========================================================
+
+    // A. FUNÇÃO PARA POPULAR O SELECT DE TUTORES (prepararNovoPet)
+    window.prepararNovoPet = async function() {
+        document.getElementById('tituloModalPet').innerText = 'Cadastrar Novo Pet';
+        document.getElementById('formNovoPet').reset();
+        document.getElementById('idPetId').value = '';
+
+        const select = document.getElementById('clienteIdPet');
+        select.innerHTML = '<option value="">Carregando tutores...</option>';
+
+        try {
+            const resposta = await fetch('http://localhost:3000/clientes');
+            const clientes = await resposta.json();
+            
+            select.innerHTML = '<option value="">Selecione o Tutor...</option>';
+            clientes.forEach(c => {
+                select.innerHTML += `<option value="${c.id_cliente}">${c.nome_completo}</option>`;
+            });
+        } catch (e) {
+            select.innerHTML = '<option value="">Erro ao carregar tutores</option>';
+        }
+    };
+
+    // B. SALVAR UM NOVO PET NO BANCO
+    const formPet = document.getElementById('formNovoPet');
+    if (formPet) {
+        formPet.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('btnSalvarPet');
+            const textoOriginal = btn.innerText;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Salvando...';
+            btn.disabled = true;
+
+            const dadosPet = {
+                id_cliente: document.getElementById('clienteIdPet').value,
+                nome: document.getElementById('nomePet').value,
+                especie: document.getElementById('especiePet').value,
+                raca: document.getElementById('racaPet').value,
+                idade: document.getElementById('idadePet').value,
+                observacoes_saude: document.getElementById('obsPet').value
+            };
+
+            try {
+                const idPetEdit = document.getElementById('idPetId').value;
+                const metodo = idPetEdit ? 'PUT' : 'POST';
+                const url = idPetEdit ? `http://localhost:3000/pets/${idPetEdit}` : 'http://localhost:3000/pets';
+
+                const resposta = await fetch(url, {
+                    method: metodo,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dadosPet)
+                });
+
+                if (resposta.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalPet')).hide();
+                    formPet.reset();
+                    document.getElementById('idPetId').value = '';
+                    carregarPets(); 
+                } else {
+                    const resultado = await resposta.json();
+                    alert('❌ Erro: ' + resultado.erro);
+                }
+            } catch (erro) {
+                alert('Erro ao comunicar com o servidor.');
+            } finally {
+                btn.innerHTML = textoOriginal;
+                btn.disabled = false;
+            }
+        });
+    }
+
+    // C. BUSCAR OS PETS E DESENHAR OS CARDS
+    const galeriaPets = document.getElementById('galeriaPets');
+
+    async function carregarPets() {
+        if (!galeriaPets) return;
+
+        try {
+            const resposta = await fetch('http://localhost:3000/pets');
+            const pets = await resposta.json();
+
+            galeriaPets.innerHTML = '';
+
+            if (pets.length === 0) {
+                galeriaPets.innerHTML = '<div class="col-12 text-center text-secondary py-5">Nenhum pet cadastrado ainda. Comece adicionando um!</div>';
+                return;
+            }
+
+            pets.forEach(pet => {
+                const classeAvatar = pet.especie === 'Gato' ? 'avatar-cat' : 'avatar-dog';
+                
+                let badgeHtml = '';
+                if (pet.observacoes_saude && pet.observacoes_saude.trim() !== '') {
+                    badgeHtml = `
+                        <span class="position-absolute top-0 end-0 mt-3 me-3 badge rounded-pill"
+                              style="background-color: #FEE2E2; color: #991B1B;" title="Observação de Saúde">
+                            <i class="bi bi-exclamation-triangle me-1"></i> Atenção
+                        </span>
+                    `;
+                }
+
+                const divCard = document.createElement('div');
+                divCard.className = 'col-md-6 col-lg-4 col-xl-3';
+                divCard.innerHTML = `
+                    <div class="card border-0 shadow-sm rounded-4 h-100 position-relative p-3 transition-hover">
+                        ${badgeHtml}
+                        <div class="d-flex flex-column align-items-center mt-3 mb-3">
+                            <div class="avatar-box avatar-lg ${classeAvatar} mb-3"></div>
+                            <h5 class="fw-bold text-dark mb-0">${pet.nome}</h5>
+                            <small class="text-secondary">${pet.raca || 'Sem raça definida'}</small>
+                        </div>
+                        <hr class="text-secondary opacity-25">
+                        <div class="px-2">
+                            <p class="mb-1 small text-secondary"><strong>Tutor:</strong> ${pet.nome_tutor}</p>
+                            <p class="mb-3 small text-secondary"><strong>Idade:</strong> ${pet.idade ? pet.idade + ' anos' : 'Não informada'}</p>
+                        </div>
+                        <div class="mt-auto d-flex gap-2">
+                            <button onclick='abrirModalEdicaoPet(${JSON.stringify(pet).replace(/'/g, "&#39;")})' class="btn btn-light flex-grow-1 rounded-pill btn-sm fw-bold text-primary-custom border" data-bs-toggle="modal" data-bs-target="#modalPet">
+                                Editar Perfil
+                            </button>
+                            <button onclick="excluirPet(${pet.id_pet})" class="btn btn-outline-danger rounded-pill btn-sm px-3 shadow-sm">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                galeriaPets.appendChild(divCard);
+            });
+        } catch (erro) {
+            console.error('Erro ao carregar pets:', erro);
+            galeriaPets.innerHTML = '<div class="col-12 text-center text-danger py-5">Erro ao tentar se comunicar com o banco de dados.</div>';
+        }
+    }
+
+    carregarPets();

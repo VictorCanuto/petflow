@@ -170,6 +170,36 @@ app.get('/pets', (req, res) => {
     });
 });
 
+// 3. U - UPDATE: Atualizar um Pet
+app.put('/pets/:id', (req, res) => {
+    const idPet = req.params.id;
+    const { id_cliente, nome, especie, raca, idade, observacoes_saude } = req.body;
+    
+    const sql = `UPDATE Pet SET id_cliente = ?, nome = ?, especie = ?, raca = ?, idade = ?, observacoes_saude = ? WHERE id_pet = ?`;
+
+    db.run(sql, [id_cliente, nome, especie, raca, idade, observacoes_saude, idPet], function(err) {
+        if (err) {
+            console.error(err.message);
+            return res.status(500).json({ erro: 'Erro ao atualizar o pet.' });
+        }
+        res.json({ mensagem: '✏️ Pet atualizado com sucesso!' });
+    });
+});
+
+// 4. D - DELETE: Excluir um Pet
+app.delete('/pets/:id', (req, res) => {
+    const idPet = req.params.id;
+    const sql = `DELETE FROM Pet WHERE id_pet = ?`;
+
+    db.run(sql, idPet, function(err) {
+        if (err) {
+            console.error(err.message);
+            return res.status(500).json({ erro: 'Erro ao excluir o pet.' });
+        }
+        res.json({ mensagem: '🗑️ Pet excluído com sucesso!' });
+    });
+});
+
 // Liga o servidor
 app.listen(PORT, () => {
     console.log(`🚀 Servidor Back-end rodando em http://localhost:${PORT}`);
