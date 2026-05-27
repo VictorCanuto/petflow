@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <script>
+        if (!localStorage.getItem('petflow_token')) {
+            window.location.href = '../login.html';
+        }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clientes - PetFlow</title>
@@ -55,9 +60,9 @@
                             <span class="input-group-text bg-white border-end-0 rounded-start-pill text-secondary">
                                 <i class="bi bi-search"></i>
                             </span>
-                            <input type="text" class="form-control border-start-0 rounded-end-pill" placeholder="Buscar por nome ou CPF...">
+                            <input type="text" id="inputBuscaClientes" class="form-control border-start-0 rounded-end-pill" placeholder="Buscar por nome ou CPF...">
                         </div>
-                        <button onclick="prepararNovoCliente()" class="btn btn-primary-custom..." data-bs-toggle="modal" data-bs-target="#modalCliente"> + Novo Cliente </button>
+                        <button onclick="prepararNovoCliente()" class="btn btn-primary-custom rounded-pill px-4 fw-bold shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalCliente"> + Novo Cliente </button>
                     </div>
                 </header>
 

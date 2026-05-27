@@ -28,6 +28,8 @@
                 <p class="text-secondary small">Acesso restrito para colaboradores</p>
             </div>
 
+            <div id="loginErro" class="alert alert-danger d-none rounded-3 py-2 small text-center" role="alert"></div>
+
             <form id="formLogin">
                 <div class="mb-3">
                     <label class="form-label small fw-bold text-secondary">E-mail</label>
@@ -64,23 +66,63 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Lógica de simulação de Login -->
+    <!-- Lógica de autenticação com o Back-end -->
     <script>
-        document.getElementById('formLogin').addEventListener('submit', function(e) {
+        document.getElementById('formLogin').addEventListener('submit', async function(e) {
             e.preventDefault(); // Impede que a página recarregue ao enviar o formulário
 
             const btn = document.getElementById('btnLogin');
+            const erroDiv = document.getElementById('loginErro');
+            const email = e.target.querySelector('input[type="email"]').value;
+            const senha = e.target.querySelector('input[type="password"]').value;
+
+            // Oculta erro anterior
+            erroDiv.classList.add('d-none');
+            erroDiv.innerText = '';
+
             const textoOriginal = btn.innerHTML;
-            
-            // Simula um carregamento visual (UX)
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Autenticando...';
             btn.disabled = true;
 
-            // Aguarda 1 segundo e redireciona para o Dashboard administrativo
-            setTimeout(() => {
-                window.location.href = 'pages/dashboard.html';
-            }, 1000);
+            const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
+            try {
+                const resposta = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
+
+                const resultado = await resposta.json();
+
+                if (resposta.ok) {
+                    // Armazena o token de autenticação
+                    localStorage.setItem('petflow_token', resultado.token);
+                    // Redireciona para o Dashboard administrativo
+                    window.location.href = 'pages/dashboard.html';
+                } else {
+                    erroDiv.innerText = resultado.erro || 'E-mail ou senha inválidos.';
+                    erroDiv.classList.remove('d-none');
+                    btn.innerHTML = textoOriginal;
+                    btn.disabled = false;
+                }
+            } catch (erro) {
+                console.error(erro);
+                erroDiv.innerText = 'Não foi possível se comunicar com o servidor. Verifique se o servidor está ligado.';
+                erroDiv.classList.remove('d-none');
+                btn.innerHTML = textoOriginal;
+                btn.disabled = false;
+            }
         });
+    </script>
+    <script>
+        if (window.location.protocol === 'file:') {
+            const banner = document.createElement('div');
+            banner.className = 'alert alert-danger text-center m-0 rounded-0 border-0 border-bottom border-danger-subtle';
+            banner.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; z-index: 1060; font-size: 0.9rem;';
+            banner.innerHTML = '<strong>⚠️ Modo de Arquivo Local Detectado:</strong> Para que o banco de dados e o login funcionem corretamente, acesse o sistema através de <a href="http://localhost:3000/login.html" class="alert-link text-decoration-underline">http://localhost:3000/login.html</a>';
+            document.body.prepend(banner);
+            document.body.classList.add('pt-5');
+        }
     </script>
 </body>
 </html>

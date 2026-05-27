@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <script>
+        if (!localStorage.getItem('petflow_token')) {
+            window.location.href = '../login.html';
+        }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - PetFlow</title>
@@ -57,8 +62,8 @@
                             </span>
                             <input type="text" class="form-control border-start-0 rounded-end-pill" placeholder="Buscar tutor ou pet...">
                         </div>
-                        <span class="badge bg-white text-dark shadow-sm px-4 py-2 rounded-pill border fw-semibold">
-                             <i class="bi bi-calendar3 me-2 text-primary-custom"></i> 27 de Abril, 2026
+                        <span id="dataAtualBadge" class="badge bg-white text-dark shadow-sm px-4 py-2 rounded-pill border fw-semibold">
+                             <i class="bi bi-calendar3 me-2 text-primary-custom"></i> -- de --, ----
                         </span>
                     </div>
                 </header>
@@ -72,7 +77,7 @@
                                 </div>
                                 <div>
                                     <h6 class="text-secondary mb-0">Agendados Hoje</h6>
-                                    <h3 class="fw-bold text-dark mb-0">02</h3>
+                                    <h3 id="cardTotalAgendados" class="fw-bold text-dark mb-0">0</h3>
                                 </div>
                             </div>
                         </div>
@@ -85,7 +90,7 @@
                                 </div>
                                 <div>
                                     <h6 class="text-secondary mb-0">Em Atendimento</h6>
-                                    <h3 class="fw-bold mb-0" style="color: #D97706;">01</h3>
+                                    <h3 id="cardEmAtendimento" class="fw-bold mb-0" style="color: #D97706;">0</h3>
                                 </div>
                             </div>
                         </div>
@@ -98,7 +103,7 @@
                                 </div>
                                 <div>
                                     <h6 class="text-secondary mb-0">Aguardando Vez</h6>
-                                    <h3 class="fw-bold mb-0 text-secondary">01</h3>
+                                    <h3 id="cardAguardando" class="fw-bold mb-0 text-secondary">0</h3>
                                 </div>
                             </div>
                         </div>
@@ -115,55 +120,19 @@
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="bg-light">
                                     <tr>
-                                        <th class="ps-4 border-0 text-secondary small">Pet</th>
+                                        <th class="ps-4 border-0 text-secondary small">Horário</th>
+                                        <th class="border-0 text-secondary small">Pet</th>
                                         <th class="border-0 text-secondary small">Tutor</th>
+                                        <th class="border-0 text-secondary small">Serviço</th>
                                         <th class="border-0 text-secondary small">Status</th>
                                         <th class="text-end pe-4 border-0 text-secondary small">Jornada</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="tabelaAcontecendoAgora">
                                     <tr>
-                                        <td class="ps-4">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div class="avatar-box avatar-lg avatar-dog mb-3"></div>
-                                                <div>
-                                                    <div class="fw-bold text-dark">Rex</div>
-                                                    <div class="small text-secondary">Golden Retriever</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="text-secondary">João Medeiros</td>
-                                        <td>
-                                            <span class="badge rounded-pill px-3 py-2 shadow-sm" style="background-color: #FEF3C7; color: #D97706;">
-                                                <i class="bi bi-arrow-repeat me-1"></i> Em atendimento
-                                            </span>
-                                        </td>
-                                        <td class="text-end pe-4">
-                                            <a href="jornada.html?pet=Rex&raca=Golden Retriever" class="btn btn-light btn-sm rounded-pill px-3 fw-bold text-primary-custom border shadow-sm" target="_blank">
-                                                <i class="bi bi-phone"></i> Ver Visão do Cliente
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="ps-4">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div class="avatar-box avatar-lg avatar-cat mb-3"></div>
-                                                <div>
-                                                    <div class="fw-bold text-dark">Mia</div>
-                                                    <div class="small text-secondary">Siamês</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="text-secondary">Maria Lins</td>
-                                        <td>
-                                            <span class="badge rounded-pill px-3 py-2 bg-light text-secondary border">
-                                                <i class="bi bi-house me-1"></i> Aguardando
-                                            </span>
-                                        </td>
-                                        <td class="text-end pe-4">
-                                            <a href="jornada.html?pet=Mia&raca=Siamês&tipo=gato" class="btn btn-light btn-sm rounded-pill px-3 fw-bold text-primary-custom border shadow-sm" target="_blank">
-                                                <i class="bi bi-phone"></i> Ver Visão do Cliente
-                                            </a>
+                                        <td colspan="6" class="text-center py-4 text-secondary">
+                                            <div class="spinner-border spinner-border-sm me-2 text-primary-custom" role="status"></div>
+                                            Carregando atendimentos...
                                         </td>
                                     </tr>
                                 </tbody>

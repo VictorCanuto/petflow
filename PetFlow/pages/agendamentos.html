@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <script>
+        if (!localStorage.getItem('petflow_token')) {
+            window.location.href = '../login.html';
+        }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agendamentos - PetFlow</title>
@@ -55,7 +60,7 @@
                             <span class="input-group-text bg-white border-end-0 rounded-start-pill text-secondary">
                                 <i class="bi bi-search"></i>
                             </span>
-                            <input type="text" class="form-control border-start-0 rounded-end-pill" placeholder="Buscar tutor ou pet...">
+                            <input type="text" id="inputBuscaAgendamentos" class="form-control border-start-0 rounded-end-pill" placeholder="Buscar tutor ou pet...">
                         </div>
                         
                         <button class="btn btn-primary-custom rounded-pill px-4 fw-bold shadow-sm text-nowrap" data-bs-toggle="modal" data-bs-target="#modalNovoAgendamento">
@@ -66,8 +71,8 @@
 
                 <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-white rounded-4 shadow-sm border border-light">
                     <label class="fw-bold text-dark mb-0"><i class="bi bi-calendar3 text-primary-custom me-2"></i>Data da Agenda:</label>
-                    <input type="date" class="form-control form-control-sm rounded-3 w-auto border-secondary" value="2026-04-27">
-                    <button class="btn btn-sm btn-light border text-secondary rounded-3">Hoje</button>
+                    <input type="date" id="dataFiltroAgenda" class="form-control form-control-sm rounded-3 w-auto border-secondary">
+                    <button id="btnFiltroHoje" class="btn btn-sm btn-light border text-secondary rounded-3">Hoje</button>
                 </div>
 
                 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
@@ -84,48 +89,11 @@
                                         <th class="text-end pe-4 border-0 text-secondary small">Ações</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="tabelaAgendamentos">
                                     <tr>
-                                        <td class="ps-4 fw-bold text-dark fs-5">09:00</td>
-                                        <td>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div class="avatar-box avatar-sm avatar-dog"></div>
-                                                <span class="fw-bold text-dark">Rex</span>
-                                            </div>
-                                        </td>
-                                        <td class="text-secondary">João Medeiros</td>
-                                        <td class="text-secondary fw-semibold">Banho e Tosa</td>
-                                        <td>
-                                            <span class="badge rounded-pill px-3 py-2" style="background-color: #FEF3C7; color: #D97706;">
-                                                <i class="bi bi-arrow-repeat me-1"></i> Em atendimento
-                                            </span>
-                                        </td>
-                                        <td class="text-end pe-4">
-                                            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#modalStatusRex">
-                                                Atualizar Status
-                                            </button>
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <td class="ps-4 fw-bold text-dark fs-5">10:30</td>
-                                        <td>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div class="avatar-box avatar-sm avatar-cat"></div>
-                                                <span class="fw-bold text-dark">Mia</span>
-                                            </div>
-                                        </td>
-                                        <td class="text-secondary">Maria Lins</td>
-                                        <td class="text-secondary fw-semibold">Apenas Banho</td>
-                                        <td>
-                                            <span class="badge rounded-pill px-3 py-2 bg-light text-secondary border">
-                                                <i class="bi bi-clock me-1"></i> Aguardando
-                                            </span>
-                                        </td>
-                                        <td class="text-end pe-4">
-                                            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#modalStatusMia">
-                                                Atualizar Status
-                                            </button>
+                                        <td colspan="6" class="text-center py-4 text-secondary">
+                                            <div class="spinner-border spinner-border-sm me-2 text-primary-custom" role="status"></div>
+                                            Carregando agendamentos...
                                         </td>
                                     </tr>
                                 </tbody>
@@ -147,48 +115,45 @@
                 </div>
                 <div class="modal-body p-4">
                     <form id="formNovoAgendamento">
+                        <input type="hidden" id="novoAgendamentoIdCliente">
+                        <input type="hidden" id="novoAgendamentoIdPet">
                         <div class="row g-3">
                             
                             <div class="col-12 position-relative custom-dropdown">
                                 <label class="form-label small fw-bold text-secondary">Tutor / Cliente</label>
-                                <input type="text" class="form-control rounded-3 text-secondary input-busca" placeholder="Digite para buscar (ex: Joao)..." autocomplete="off">
-                                <ul class="list-group position-absolute w-100 shadow mt-1 d-none lista-opcoes" style="z-index: 1000; max-height: 150px; overflow-y: auto;">
-                                    <li class="list-group-item list-group-item-action" style="cursor: pointer;">João Medeiros</li>
-                                    <li class="list-group-item list-group-item-action" style="cursor: pointer;">Maria Lins</li>
-                                    <li class="list-group-item list-group-item-action" style="cursor: pointer;">José da Silva</li>
-                                    <li class="list-group-item list-group-item-action text-muted text-center d-none sem-resultado">Nenhum cliente encontrado</li>
+                                <input type="text" id="novoAgendamentoTutorInput" class="form-control rounded-3 text-secondary input-busca" placeholder="Digite para buscar tutor (ex: Joao)..." autocomplete="off" required>
+                                <ul id="novoAgendamentoTutorLista" class="list-group position-absolute w-100 shadow mt-1 d-none lista-opcoes" style="z-index: 1000; max-height: 150px; overflow-y: auto;">
+                                    <!-- Carregado via JS -->
                                 </ul>
                             </div>
 
                             <div class="col-12 position-relative custom-dropdown">
                                 <label class="form-label small fw-bold text-secondary">Pet</label>
-                                <input type="text" class="form-control rounded-3 text-secondary input-busca" placeholder="Digite para buscar (ex: Rex)..." autocomplete="off">
-                                <ul class="list-group position-absolute w-100 shadow mt-1 d-none lista-opcoes" style="z-index: 1000; max-height: 150px; overflow-y: auto;">
-                                    <li class="list-group-item list-group-item-action" style="cursor: pointer;">Rex (Golden Retriever)</li>
-                                    <li class="list-group-item list-group-item-action" style="cursor: pointer;">Mia (Siamês)</li>
-                                    <li class="list-group-item list-group-item-action" style="cursor: pointer;">Bolinha (Poodle)</li>
-                                    <li class="list-group-item list-group-item-action text-muted text-center d-none sem-resultado">Nenhum pet encontrado</li>
+                                <input type="text" id="novoAgendamentoPetInput" class="form-control rounded-3 text-secondary input-busca" placeholder="Selecione um tutor primeiro..." autocomplete="off" disabled required>
+                                <ul id="novoAgendamentoPetLista" class="list-group position-absolute w-100 shadow mt-1 d-none lista-opcoes" style="z-index: 1000; max-height: 150px; overflow-y: auto;">
+                                    <!-- Carregado via JS -->
                                 </ul>
                             </div>
 
                             <div class="col-6">
                                 <label class="form-label small fw-bold text-secondary">Data</label>
-                                <input type="date" class="form-control rounded-3 text-secondary">
+                                <input type="date" id="novoAgendamentoData" class="form-control rounded-3 text-secondary" required>
                             </div>
                             <div class="col-6">
                                 <label class="form-label small fw-bold text-secondary">Horário</label>
-                                <input type="time" class="form-control rounded-3 text-secondary">
+                                <input type="time" id="novoAgendamentoHorario" class="form-control rounded-3 text-secondary" required>
                             </div>
                             <div class="col-12">
                                 <label class="form-label small fw-bold text-secondary">Serviço</label>
-                                <select class="form-select rounded-3 text-secondary">
-                                    <option>Banho e Tosa Completa</option>
-                                    <option>Apenas Banho</option>
-                                    <option>Tosa Higiênica</option>
+                                <select id="novoAgendamentoServico" class="form-select rounded-3 text-secondary" required>
+                                    <option value="" disabled selected>Selecione um serviço...</option>
+                                    <option value="Banho e Tosa Completa">Banho e Tosa Completa</option>
+                                    <option value="Apenas Banho">Apenas Banho</option>
+                                    <option value="Tosa Higiênica">Tosa Higiênica</option>
                                 </select>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-primary-custom w-100 rounded-pill py-2 fw-bold mt-4 shadow-sm btn-salvar-agendamento">
+                        <button type="submit" id="btnConfirmarAgendamento" class="btn btn-primary-custom w-100 rounded-pill py-2 fw-bold mt-4 shadow-sm">
                             Confirmar Agendamento
                         </button>
                     </form>
@@ -197,52 +162,27 @@
         </div>
     </div>
 
-   <div class="modal fade" id="modalStatusRex" tabindex="-1" aria-hidden="true">
+    <!-- Modal Status Agendamento Único e Dinâmico -->
+    <div class="modal fade" id="modalStatusAgendamento" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content border-0 rounded-4 shadow">
                 <div class="modal-header border-0 pb-0">
-                    <h6 class="fw-bold text-dark w-100 text-center">Status de Rex</h6>
+                    <h6 class="fw-bold text-dark w-100 text-center" id="tituloModalStatus">Status de Pet</h6>
                     <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-light text-start border rounded-3 fw-semibold text-secondary btn-status-opcao" data-bs-dismiss="modal">
-                            <i class="bi bi-shop me-2"></i>Chegou no Petshop
-                        </button>
-                        <button class="btn text-start border rounded-3 fw-bold shadow-sm btn-status-opcao" style="color: #D97706; background-color: #FEF3C7; border-color: #FCD34D !important;" data-bs-dismiss="modal">
-                            <i class="bi bi-droplet-fill me-2"></i> Iniciar Banho
-                        </button>
-                        <button class="btn btn-light text-start border rounded-3 fw-semibold text-secondary btn-status-opcao" data-bs-dismiss="modal">
-                            <i class="bi bi-scissors me-2"></i> Iniciar Tosa
-                        </button>
-                        <hr class="my-2">
-                        <button class="btn text-start border rounded-3 fw-bold btn-status-opcao" style="background-color: #DCFCE7; color: #166534;" data-bs-dismiss="modal">
-                            <i class="bi bi-check-circle-fill me-2"></i> Finalizar Serviço
-                        </button>
+                    <input type="hidden" id="statusAgendamentoId">
+                    <div class="mb-3">
+                        <label for="statusNotaFuncionario" class="form-label small fw-bold text-secondary">Nota de Acompanhamento (Opcional)</label>
+                        <textarea id="statusNotaFuncionario" class="form-control rounded-3 text-secondary small" rows="2" placeholder="Digite uma observação sobre o pet..."></textarea>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modalStatusMia" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content border-0 rounded-4 shadow">
-                <div class="modal-header border-0 pb-0">
-                    <h6 class="fw-bold text-dark w-100 text-center">Status de Mia</h6>
-                    <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-light text-start border rounded-3 fw-semibold text-secondary btn-status-opcao" data-bs-dismiss="modal">
-                            🏠 Chegou no Petshop
-                        </button>
-                        <button class="btn btn-light text-start border rounded-3 fw-semibold text-secondary btn-status-opcao" data-bs-dismiss="modal">
-                            🚿 Iniciar Banho
-                        </button>
-                        <hr class="my-2">
-                        <button class="btn text-start border rounded-3 fw-bold btn-status-opcao" style="background-color: #DCFCE7; color: #166534;" data-bs-dismiss="modal">
-                            ✅ Finalizar Serviço
+                    <div class="d-grid gap-2 mb-3" id="statusBotoesContainer">
+                        <!-- Carregado via JS dinamicamente baseando-se no serviço do pet -->
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-grid">
+                        <button type="button" class="btn btn-outline-danger text-start border rounded-3 fw-semibold btn-excluir-agendamento-modal">
+                            <i class="bi bi-trash me-2"></i> Excluir Agendamento
                         </button>
                     </div>
                 </div>

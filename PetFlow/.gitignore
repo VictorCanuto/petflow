@@ -1,0 +1,16 @@
+# Dependências de pacotes
+node_modules/
+package-lock.json
+
+# Banco de dados local (gerado em tempo de execução)
+*.db
+*.db-journal
+
+# Pastas e arquivos do agente de IA (Antigravity/Gemini)
+.agents/
+skills-lock.json
+
+# Scripts de teste/scratch de desenvolvimento
+scratch/
+test_*.js
+*.log

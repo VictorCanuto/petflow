@@ -11,41 +11,484 @@
     <link rel="stylesheet" href="../assets/css/style.css?v=2">
 </head>
 
-<script>
-        // Espera a página carregar 100% para não dar erro de elemento não encontrado
-        document.addEventListener('DOMContentLoaded', () => {
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
             const urlParams = new URLSearchParams(window.location.search);
-            const nome = urlParams.get('pet');
-            const raca = urlParams.get('raca');
-            const tipo = urlParams.get('tipo');
+            const idAgendamento = urlParams.get('agendamento');
+            const isDemo = urlParams.get('demo') === 'true';
 
-            // 1. Troca o Nome e o Título da aba
-            if (nome) {
-                const elNome = document.getElementById('nomePet');
-                if(elNome) elNome.innerText = nome;
-                document.title = `Jornada do ${nome} - PetFlow`;
+            const elJornada = document.getElementById('jornadaConteudo');
+            const elBusca = document.getElementById('buscaConteudo');
+
+            if (idAgendamento) {
+                if (elJornada) elJornada.style.display = 'block';
+                if (elBusca) elBusca.style.display = 'none';
+                try {
+                    const resposta = await fetch(`${API_BASE}/jornada/${idAgendamento}`);
+                    if (!resposta.ok) {
+                        throw new Error('Jornada não encontrada');
+                    }
+                    const data = await resposta.json();
+                    renderizarJornadaReal(data);
+                } catch (erro) {
+                    console.error('Erro ao buscar jornada:', erro);
+                    mostrarMensagemErro('Jornada não encontrada ou erro de conexão.');
+                }
+            } else if (isDemo) {
+                if (elJornada) elJornada.style.display = 'block';
+                if (elBusca) elBusca.style.display = 'none';
+                renderizarJornadaMock();
+            } else {
+                if (elJornada) elJornada.style.display = 'none';
+                if (elBusca) elBusca.style.display = 'block';
+                inicializarBuscaPublica(API_BASE);
+            }
+        });
+
+        function inicializarBuscaPublica(API_BASE) {
+            const form = document.getElementById('formBuscaJornada');
+            const input = document.getElementById('codigoBusca');
+            const erroDiv = document.getElementById('erroBusca');
+            
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const id = input.value.trim();
+                    if (!id) return;
+
+                    erroDiv.classList.add('d-none');
+                    erroDiv.innerText = '';
+                    
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Buscando...';
+                    submitBtn.disabled = true;
+
+                    try {
+                        const resposta = await fetch(`${API_BASE}/jornada/${id}`);
+                        if (resposta.ok) {
+                            window.location.search = `?agendamento=${id}`;
+                        } else {
+                            erroDiv.innerText = 'Código de agendamento não encontrado. Verifique o número e tente novamente.';
+                            erroDiv.classList.remove('d-none');
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        erroDiv.innerText = 'Erro ao conectar ao servidor. Tente novamente mais tarde.';
+                        erroDiv.classList.remove('d-none');
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                    }
+                });
+            }
+        }
+
+        function renderizarJornadaReal(data) {
+            const agendamento = data.agendamento;
+            const historico = data.historico || [];
+
+            // 1. Atualizar informações básicas
+            const elNome = document.getElementById('nomePet');
+            if (elNome) elNome.innerText = agendamento.nome_pet;
+            document.title = `Jornada do ${agendamento.nome_pet} - PetFlow`;
+
+            const elInfo = document.getElementById('infoPet');
+            if (elInfo) elInfo.innerText = `${agendamento.raca_pet || 'Sem raça'} • Tutor: ${agendamento.nome_tutor}`;
+
+            // 2. Avatar
+            const elAvatar = document.getElementById('avatarPet');
+            if (elAvatar) {
+                if (agendamento.especie_pet === 'Gato') {
+                    elAvatar.classList.remove('avatar-dog');
+                    elAvatar.classList.add('avatar-cat');
+                } else {
+                    elAvatar.classList.remove('avatar-cat');
+                    elAvatar.classList.add('avatar-dog');
+                }
             }
 
-            // 2. Troca a Raça e tira o nome do tutor (já que é genérico)
-            if (raca) {
-                const elInfo = document.getElementById('infoPet');
-                if(elInfo) elInfo.innerText = `${raca} • Acompanhamento em Tempo Real`;
+            // 3. Badge de Status
+            const elBadge = document.getElementById('statusBadge');
+            if (elBadge) {
+                elBadge.className = 'badge rounded-pill px-4 py-2 mt-2 shadow-sm';
+                if (agendamento.status_atual === 'Aguardando') {
+                    elBadge.classList.add('badge-warning-custom');
+                    elBadge.innerText = '🏠 Status: Aguardando vez';
+                } else if (agendamento.status_atual === 'Em atendimento') {
+                    elBadge.style.cssText = 'background-color: #FEF3C7; color: #D97706;';
+                    elBadge.innerText = '🚿 Status: No banho / serviço';
+                } else if (agendamento.status_atual === 'Finalizado') {
+                    elBadge.style.cssText = 'background-color: #DCFCE7; color: #166534;';
+                    elBadge.innerText = '✅ Status: Pronto para buscar!';
+                }
             }
 
-            // 3. Troca o Avatar e as Cores dependendo se é Gato ou Cachorro
-            if (tipo) {
-                const elAvatar = document.getElementById('avatarPet');
-                if (elAvatar) {
-                    if (tipo === 'gato') {
-                        elAvatar.classList.remove('avatar-dog');
-                        elAvatar.classList.add('avatar-cat'); // Fica laranjinha
+            // 4. Formatação de hora
+            const formatarHora = (dateTimeStr) => {
+                if (!dateTimeStr) return '';
+                const isoStr = dateTimeStr.includes('T') ? dateTimeStr : dateTimeStr.replace(' ', 'T') + 'Z';
+                const dataObj = new Date(isoStr);
+                if (isNaN(dataObj.getTime())) return '';
+                return dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            };
+
+            const chegouLog = historico.find(h => h.etapa_jornada === 'Chegou no Petshop');
+            const banhoLog = historico.find(h => h.etapa_jornada === 'Banho Iniciado');
+            const tosaLog = historico.find(h => h.etapa_jornada === 'Tosa Iniciada');
+            const secagemLog = historico.find(h => h.etapa_jornada === 'Secagem Iniciada');
+            const prontoLog = historico.find(h => h.etapa_jornada === 'Pronto para buscar!');
+
+            const horaChegou = chegouLog ? formatarHora(chegouLog.horario_atualizacao) : '';
+            const horaBanho = banhoLog ? formatarHora(banhoLog.horario_atualizacao) : '';
+            const horaTosa = tosaLog ? formatarHora(tosaLog.horario_atualizacao) : '';
+            const horaSecagem = secagemLog ? formatarHora(secagemLog.horario_atualizacao) : '';
+            const horaPronto = prontoLog ? formatarHora(prontoLog.horario_atualizacao) : '';
+
+            // Configurar 5 etapas
+            const tipoServico = agendamento.tipo_servico || '';
+            const isApenasBanho = !tipoServico.toLowerCase().includes('tosa');
+            const status = agendamento.status_atual;
+
+            let stages = [
+                { title: 'Chegou no Petshop', class: '', desc: 'Aguardando...' },
+                { title: 'Aguardando Vez', class: '', desc: 'Aguardando...' },
+                { title: 'Banho Iniciado', class: '', desc: 'Aguardando...' },
+                { title: isApenasBanho ? 'Secagem' : 'Secagem e Tosa', class: '', desc: 'Aguardando...' },
+                { title: 'Pronto para buscar!', class: '', desc: 'Avisaremos quando finalizar.' }
+            ];
+
+            // Etapa 1: Chegou no Petshop
+            stages[0].class = 'completed';
+            stages[0].desc = horaChegou ? `${horaChegou} • Recebido com muita festa!` : 'Recebido com muita festa!';
+
+            // Etapa 2: Aguardando Vez
+            if (status === 'Aguardando') {
+                stages[1].class = 'active';
+                stages[1].desc = horaChegou ? `${horaChegou} • Aguardando na recepção.` : 'Aguardando na recepção.';
+            } else {
+                stages[1].class = 'completed';
+                stages[1].desc = horaChegou ? `${horaChegou} • Aguardando na recepção.` : 'Aguardando na recepção.';
+            }
+
+            // Etapa 3: Banho Iniciado
+            if (status === 'Aguardando') {
+                stages[2].class = '';
+                stages[2].desc = 'Aguardando...';
+            } else if (status === 'Em atendimento') {
+                if ((isApenasBanho && !secagemLog) || (!isApenasBanho && !tosaLog)) {
+                    stages[2].class = 'active';
+                    stages[2].desc = horaBanho ? `${horaBanho} • Banho relaxante iniciado.` : 'Banho relaxante iniciado.';
+                } else {
+                    stages[2].class = 'completed';
+                    stages[2].desc = horaBanho ? `${horaBanho} • Banho relaxante finalizado.` : 'Banho relaxante finalizado.';
+                }
+            } else if (status === 'Finalizado') {
+                stages[2].class = 'completed';
+                stages[2].desc = horaBanho ? `${horaBanho} • Banho relaxante finalizado.` : 'Banho relaxante finalizado.';
+            }
+
+            // Etapa 4: Secagem ou Secagem e Tosa
+            if (status === 'Aguardando') {
+                stages[3].class = '';
+                stages[3].desc = 'Aguardando...';
+            } else if (status === 'Em atendimento') {
+                if (isApenasBanho) {
+                    if (secagemLog) {
+                        stages[3].class = 'active';
+                        stages[3].desc = horaSecagem ? `${horaSecagem} • Processo de secagem iniciado.` : 'Processo de secagem iniciado.';
                     } else {
-                        elAvatar.classList.remove('avatar-cat');
-                        elAvatar.classList.add('avatar-dog'); // Fica verde
+                        stages[3].class = '';
+                        stages[3].desc = 'Aguardando...';
+                    }
+                } else {
+                    if (tosaLog) {
+                        stages[3].class = 'active';
+                        stages[3].desc = horaTosa ? `${horaTosa} • Processo de secagem e tosa iniciado.` : 'Processo de secagem e tosa iniciado.';
+                    } else {
+                        stages[3].class = '';
+                        stages[3].desc = 'Aguardando...';
+                    }
+                }
+            } else if (status === 'Finalizado') {
+                stages[3].class = 'completed';
+                if (isApenasBanho) {
+                    stages[3].desc = horaPronto ? `${horaPronto} • Pelagem seca.` : (horaSecagem ? `${horaSecagem} • Pelagem seca.` : 'Pelagem seca.');
+                } else {
+                    stages[3].desc = horaPronto ? `${horaPronto} • Pelagem seca e tosa finalizada.` : (horaTosa ? `${horaTosa} • Pelagem seca e tosa finalizada.` : 'Pelagem seca e tosa finalizada.');
+                }
+            }
+
+            // Etapa 5: Pronto para buscar!
+            if (status === 'Finalizado') {
+                stages[4].class = 'active';
+                stages[4].desc = horaPronto ? `${horaPronto} • Cheiroso e esperando você!` : 'Pronto para buscar!';
+            } else {
+                stages[4].class = '';
+                stages[4].desc = 'Avisaremos quando finalizar.';
+            }
+
+            // Renderizar Timeline HTML
+            const elTimeline = document.getElementById('timelineContainer');
+            if (elTimeline) {
+                elTimeline.innerHTML = stages.map(stg => `
+                    <li class="timeline-item ${stg.class}">
+                        <h6 class="${stg.class === '' ? 'fw-semibold text-muted' : 'fw-bold text-dark'} mb-1">${stg.title}</h6>
+                        <p class="small ${stg.class === '' ? 'text-muted' : 'text-secondary'} mb-0">${stg.desc}</p>
+                    </li>
+                `).join('');
+            }
+
+            // 5. Renderizar Notas e Fotos no Carrossel
+            const notasComConteudo = historico.filter(h => h.nota_funcionario && h.nota_funcionario.trim() !== '');
+            const elCarouselInner = document.getElementById('carouselInnerContainer');
+            const elCarouselIndicators = document.getElementById('carouselIndicatorsContainer');
+            const elControles = document.getElementById('carouselControles');
+
+            if (notasComConteudo.length === 0) {
+                // Nota padrão se não houver registros customizados
+                elCarouselInner.innerHTML = `
+                    <div class="carousel-item active">
+                        <div class="alert bg-primary-soft border-0 p-4 d-flex gap-3 align-items-start mb-0 h-100">
+                            <span class="fs-3">💡</span>
+                            <div>
+                                <h6 class="fw-bold text-primary-custom mb-1">Bem-vindo ao PetFlow!</h6>
+                                <p class="small text-dark mb-0">Estamos cuidando do seu pet com todo carinho. Fique de olho na linha do tempo para ver o progresso em tempo real!</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                if (elControles) elControles.classList.add('d-none');
+            } else {
+                // Notas personalizadas
+                elCarouselInner.innerHTML = notasComConteudo.map((nota, index) => {
+                    let icon = '💡';
+                    let title = 'Nota de Acompanhamento';
+                    let bgClass = 'bg-primary-soft';
+                    let alertStyle = '';
+                    let titleStyle = 'color: var(--color-primary);';
+
+                    if (nota.etapa_jornada === 'Banho Iniciado') {
+                        icon = '🚿';
+                        title = 'Nota do Banho';
+                        bgClass = '';
+                        alertStyle = 'background-color: #FFFBEB; border: 0;';
+                        titleStyle = 'color: #D97706;';
+                    } else if (nota.etapa_jornada === 'Tosa Iniciada') {
+                        icon = '✂️';
+                        title = 'Nota da Tosa';
+                        bgClass = '';
+                        alertStyle = 'background-color: #FFFBEB; border: 0;';
+                        titleStyle = 'color: #D97706;';
+                    } else if (nota.etapa_jornada === 'Secagem Iniciada') {
+                        icon = '🌬️';
+                        title = 'Nota da Secagem';
+                        bgClass = '';
+                        alertStyle = 'background-color: #FFFBEB; border: 0;';
+                        titleStyle = 'color: #D97706;';
+                    } else if (nota.etapa_jornada === 'Pronto para buscar!') {
+                        icon = '✅';
+                        title = 'Serviço Finalizado';
+                        bgClass = '';
+                        alertStyle = 'background-color: #DCFCE7; border: 0;';
+                        titleStyle = 'color: #166534;';
+                    }
+
+                    return `
+                        <div class="carousel-item ${index === 0 ? 'active' : ''}">
+                            <div class="alert ${bgClass} p-4 d-flex gap-3 align-items-start mb-0 h-100" style="${alertStyle}">
+                                <span class="fs-3">${icon}</span>
+                                <div>
+                                    <h6 class="fw-bold mb-1" style="${titleStyle}">${title}</h6>
+                                    <p class="small text-dark mb-0">${nota.nota_funcionario}</p>
+                                    <small class="text-secondary block mt-2 d-block" style="font-size: 0.7rem;">${formatarHora(nota.horario_atualizacao)}</small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Indicadores
+                if (elCarouselIndicators) {
+                    elCarouselIndicators.innerHTML = notasComConteudo.map((_, index) => `
+                        <button type="button" data-bs-target="#notasCarousel" data-bs-slide-to="${index}" class="${index === 0 ? 'active' : ''}" aria-current="${index === 0 ? 'true' : 'false'}"></button>
+                    `).join('');
+                }
+
+                // Exibe controles apenas se houver mais de uma nota
+                if (elControles) {
+                    if (notasComConteudo.length > 1) {
+                        elControles.classList.remove('d-none');
+                    } else {
+                        elControles.classList.add('d-none');
                     }
                 }
             }
-        });
+        }
+
+        function renderizarJornadaMock() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const nome = urlParams.get('pet') || 'Rex';
+            const raca = urlParams.get('raca') || 'Golden Retriever';
+            const tipo = urlParams.get('tipo') || 'cachorro';
+            const servico = urlParams.get('servico') || 'Apenas Banho'; // default to bath-only if name is Rex/default mock
+
+            const elNome = document.getElementById('nomePet');
+            if (elNome) elNome.innerText = nome;
+            document.title = `Jornada do ${nome} - PetFlow`;
+
+            const elInfo = document.getElementById('infoPet');
+            if (elInfo) elInfo.innerText = `${raca} • Acompanhamento em Tempo Real`;
+
+            const elAvatar = document.getElementById('avatarPet');
+            if (elAvatar) {
+                if (tipo === 'gato') {
+                    elAvatar.classList.remove('avatar-dog');
+                    elAvatar.classList.add('avatar-cat');
+                } else {
+                    elAvatar.classList.remove('avatar-cat');
+                    elAvatar.classList.add('avatar-dog');
+                }
+            }
+
+            const elBadge = document.getElementById('statusBadge');
+            if (elBadge) {
+                elBadge.className = 'badge rounded-pill px-4 py-2 mt-2 shadow-sm badge-warning-custom';
+                elBadge.innerText = '🔄 Status: No banho';
+            }
+
+            const isApenasBanho = !servico.toLowerCase().includes('tosa');
+            const etapaQuatroTitulo = isApenasBanho ? 'Secagem' : 'Secagem e Tosa';
+
+            // Se estiver em modo demonstração, renderizar o seletor de serviço simulado
+            let elDemoSelector = document.getElementById('demoSelectorContainer');
+            if (!elDemoSelector) {
+                elDemoSelector = document.createElement('div');
+                elDemoSelector.id = 'demoSelectorContainer';
+                elDemoSelector.className = 'd-flex justify-content-center gap-2 mt-3 px-4';
+                elDemoSelector.innerHTML = `
+                    <a href="?demo=true&servico=Apenas Banho" class="btn btn-sm rounded-pill px-3 fw-bold ${isApenasBanho ? 'btn-secondary text-white' : 'btn-outline-secondary'}" style="font-size: 0.75rem;">Simular Apenas Banho</a>
+                    <a href="?demo=true&servico=Banho e Tosa Completa" class="btn btn-sm rounded-pill px-3 fw-bold ${!isApenasBanho ? 'btn-secondary text-white' : 'btn-outline-secondary'}" style="font-size: 0.75rem;">Simular Banho e Tosa</a>
+                `;
+                const headerSection = document.querySelector('section.text-center');
+                if (headerSection) {
+                    headerSection.appendChild(elDemoSelector);
+                }
+            }
+
+            // Renderizar Timeline estática de exemplo
+            const elTimeline = document.getElementById('timelineContainer');
+            if (elTimeline) {
+                elTimeline.innerHTML = `
+                    <li class="timeline-item completed">
+                        <h6 class="fw-bold mb-1 text-dark">Chegou no Petshop</h6>
+                        <p class="small text-secondary mb-0">09:05 • Recebido com muita festa!</p>
+                    </li>
+                    <li class="timeline-item completed">
+                        <h6 class="fw-bold mb-1 text-dark">Aguardando Vez</h6>
+                        <p class="small text-secondary mb-0">09:15 • Brincando na área comum.</p>
+                    </li>
+                    <li class="timeline-item active">
+                        <h6 class="fw-bold mb-1 text-dark">Banho Iniciado</h6>
+                        <p class="small text-secondary mb-0">09:40 • Usando shampoo hipoalergênico.</p>
+                    </li>
+                    <li class="timeline-item">
+                        <h6 class="fw-semibold mb-1 text-muted">${etapaQuatroTitulo}</h6>
+                        <p class="small text-muted mb-0">Aguardando...</p>
+                    </li>
+                    <li class="timeline-item">
+                        <h6 class="fw-semibold mb-1 text-muted">Pronto para buscar!</h6>
+                        <p class="small text-muted mb-0">Avisaremos quando finalizar.</p>
+                    </li>
+                `;
+            }
+
+            const elCarouselInner = document.getElementById('carouselInnerContainer');
+            const elControles = document.getElementById('carouselControles');
+            const elIndicators = document.getElementById('carouselIndicatorsContainer');
+
+            if (elCarouselInner) {
+                if (isApenasBanho) {
+                    elCarouselInner.innerHTML = `
+                        <div class="carousel-item active">
+                            <div class="alert bg-primary-soft border-0 p-4 d-flex gap-3 align-items-start mb-0 h-100">
+                                <span class="fs-3">💡</span>
+                                <div>
+                                    <h6 class="fw-bold text-primary-custom mb-1">Nota do Banhista</h6>
+                                    <p class="small text-dark mb-0">O ${nome} está super calmo hoje. Adora a água morna e está se comportando muito bem no banho.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="alert bg-warning-soft border-0 p-4 d-flex gap-3 align-items-start mb-0 h-100" style="background-color: #FFFBEB;">
+                                <span class="fs-3">🌬️</span>
+                                <div>
+                                    <h6 class="fw-bold mb-1" style="color: #D97706;">Atualização</h6>
+                                    <p class="small text-dark mb-0">Banho finalizado com sucesso! Pelagem limpa e perfumada. Indo para a secagem agora.</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    elCarouselInner.innerHTML = `
+                        <div class="carousel-item active">
+                            <div class="alert bg-primary-soft border-0 p-4 d-flex gap-3 align-items-start mb-0 h-100">
+                                <span class="fs-3">💡</span>
+                                <div>
+                                    <h6 class="fw-bold text-primary-custom mb-1">Nota do Tosador</h6>
+                                    <p class="small text-dark mb-0">O ${nome} está super calmo hoje. Notamos um pequeno nó na orelha direita, mas já vamos resolver com cuidado na tosa.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="alert bg-warning-soft border-0 p-4 d-flex gap-3 align-items-start mb-0 h-100" style="background-color: #FFFBEB;">
+                                <span class="fs-3">📸</span>
+                                <div>
+                                    <h6 class="fw-bold mb-1" style="color: #D97706;">Atualização</h6>
+                                    <p class="small text-dark mb-0">Banho finalizado com sucesso! Ele adorou a água morna e se comportou super bem. Indo secar e tosar agora.</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            if (elIndicators) {
+                elIndicators.innerHTML = `
+                    <button type="button" data-bs-target="#notasCarousel" data-bs-slide-to="0" class="active" aria-current="true"></button>
+                    <button type="button" data-bs-target="#notasCarousel" data-bs-slide-to="1"></button>
+                `;
+            }
+
+            if (elControles) {
+                elControles.classList.remove('d-none');
+            }
+        }
+
+        function mostrarMensagemErro(mensagem) {
+            const elNome = document.getElementById('nomePet');
+            if (elNome) elNome.innerText = 'Ops!';
+            const elInfo = document.getElementById('infoPet');
+            if (elInfo) elInfo.innerText = mensagem;
+            
+            const elTimeline = document.getElementById('timelineContainer');
+            if (elTimeline) elTimeline.innerHTML = '<li class="timeline-item text-danger py-3">Não foi possível carregar a jornada.</li>';
+            
+            const elCarouselInner = document.getElementById('carouselInnerContainer');
+            if (elCarouselInner) {
+                elCarouselInner.innerHTML = `
+                    <div class="carousel-item active">
+                        <div class="alert alert-danger border-0 p-4 mb-0">
+                            Nenhum dado disponível. Verifique o link de rastreamento enviado.
+                        </div>
+                    </div>
+                `;
+            }
+            const elControles = document.getElementById('carouselControles');
+            if (elControles) elControles.classList.add('d-none');
+        }
     </script>
 
 <body class="bg-light-custom">
@@ -63,86 +506,89 @@
             <div style="width: 24px;"></div>
         </header>
 
-        <section class="p-4 text-center">
-            <div id="avatarPet" class="avatar-box avatar-lg avatar-dog mx-auto mb-3">
-            </div>
-            
-            <h2 class="fw-bold text-dark mb-0" id="nomePet">Rex</h2>
-            <p class="text-secondary mb-2" id="infoPet">Golden Retriever • Tutor: João Medeiros</p>
-            
-            <div class="badge rounded-pill px-4 py-2 mt-2 shadow-sm badge-warning-custom">
-                🔄 Status: No banho
-            </div>
-        </section>
-
-        <section class="px-4 mt-2">
-            <h6 class="fw-bold text-dark mb-4">Jornada de Hoje</h6>
-            
-            <ul class="timeline m-0">
-                <li class="timeline-item completed">
-                    <h6 class="fw-bold mb-1 text-dark">Chegou no Petshop</h6>
-                    <p class="small text-secondary mb-0">09:05 • Recebido com muita festa!</p>
-                </li>
-                <li class="timeline-item completed">
-                    <h6 class="fw-bold mb-1 text-dark">Aguardando Vez</h6>
-                    <p class="small text-secondary mb-0">09:15 • Brincando na área comum.</p>
-                </li>
-                <li class="timeline-item active">
-                    <h6 class="fw-bold mb-1 text-dark">Banho Iniciado</h6>
-                    <p class="small text-secondary mb-0">09:40 • Usando shampoo hipoalergênico.</p>
-                </li>
-                <li class="timeline-item">
-                    <h6 class="fw-semibold mb-1 text-muted">Secagem e Tosa</h6>
-                    <p class="small text-muted mb-0">Aguardando...</p>
-                </li>
-                <li class="timeline-item">
-                    <h6 class="fw-semibold mb-1 text-muted">Pronto para buscar!</h6>
-                    <p class="small text-muted mb-0">Avisaremos quando finalizar.</p>
-                </li>
-            </ul>
-        </section>
-
-        <section class="px-4 mt-5">
-            <div id="notasCarousel" class="carousel slide" data-bs-ride="false">
+        <!-- Conteúdo Principal da Jornada -->
+        <div id="jornadaConteudo" style="display: none;">
+            <section class="p-4 text-center">
+                <div id="avatarPet" class="avatar-box avatar-lg avatar-dog mx-auto mb-3">
+                </div>
                 
-                <div class="carousel-inner shadow-sm rounded-4">
-                    <div class="carousel-item active">
-                        <div class="alert bg-primary-soft border-0 p-4 d-flex gap-3 align-items-start mb-0 h-100">
-                            <span class="fs-3">💡</span>
-                            <div>
-                                <h6 class="fw-bold text-primary-custom mb-1">Nota do Tosador</h6>
-                                <p class="small text-dark mb-0">O Rex está super calmo hoje. Notamos um pequeno nó na orelha direita, mas já vamos resolver com cuidado na tosa.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="carousel-item">
-                        <div class="alert bg-warning-soft border-0 p-4 d-flex gap-3 align-items-start mb-0 h-100" style="background-color: #FFFBEB;">
-                            <span class="fs-3">📸</span>
-                            <div>
-                                <h6 class="fw-bold mb-1" style="color: #D97706;">Atualização</h6>
-                                <p class="small text-dark mb-0">Banho finalizado com sucesso! Ele adorou a água morna e se comportou super bem. Indo secar agora.</p>
-                            </div>
-                        </div>
-                    </div>
+                <h2 class="fw-bold text-dark mb-0" id="nomePet">Carregando...</h2>
+                <p class="text-secondary mb-2" id="infoPet">Acompanhamento em Tempo Real</p>
+                
+                <div id="statusBadge" class="badge rounded-pill px-4 py-2 mt-2 shadow-sm bg-light text-secondary border">
+                    🔄 Status: Carregando...
                 </div>
+            </section>
 
-                <div class="d-flex justify-content-between align-items-center mt-3 px-2">
-                    <button class="btn btn-sm btn-link text-secondary text-decoration-none" type="button" data-bs-target="#notasCarousel" data-bs-slide="prev">
-                        <i class="bi bi-chevron-left"></i> Anterior
-                    </button>
+            <section class="px-4 mt-2">
+                <h6 class="fw-bold text-dark mb-4">Jornada de Hoje</h6>
+                
+                <ul class="timeline m-0" id="timelineContainer">
+                    <li class="timeline-item text-secondary py-3">Carregando linha do tempo...</li>
+                </ul>
+            </section>
+
+            <section class="px-4 mt-5">
+                <div id="notasCarousel" class="carousel slide" data-bs-ride="false">
                     
-                    <div class="carousel-indicators position-static m-0">
-                        <button type="button" data-bs-target="#notasCarousel" data-bs-slide-to="0" class="active" aria-current="true"></button>
-                        <button type="button" data-bs-target="#notasCarousel" data-bs-slide-to="1"></button>
+                    <div class="carousel-inner shadow-sm rounded-4" id="carouselInnerContainer">
+                        <div class="carousel-item active">
+                            <div class="alert bg-light border p-4 text-center mb-0">
+                                Carregando notas...
+                            </div>
+                        </div>
                     </div>
 
-                    <button class="btn btn-sm btn-link text-primary-custom fw-bold text-decoration-none" type="button" data-bs-target="#notasCarousel" data-bs-slide="next">
-                        Próximo <i class="bi bi-chevron-right"></i>
-                    </button>
-                </div>
+                    <div id="carouselControles" class="d-flex justify-content-between align-items-center mt-3 px-2 d-none">
+                        <button class="btn btn-sm btn-link text-secondary text-decoration-none" type="button" data-bs-target="#notasCarousel" data-bs-slide="prev">
+                            <i class="bi bi-chevron-left"></i> Anterior
+                        </button>
+                        
+                        <div class="carousel-indicators position-static m-0" id="carouselIndicatorsContainer">
+                            <!-- Indicadores dinâmicos -->
+                        </div>
 
-            </div>
-        </section>
+                        <button class="btn btn-sm btn-link text-primary-custom fw-bold text-decoration-none" type="button" data-bs-target="#notasCarousel" data-bs-slide="next">
+                            Próximo <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+
+        <!-- Interface de Busca Pública -->
+        <div id="buscaConteudo" style="display: none;">
+            <section class="p-4 text-center mt-4">
+                <div class="bg-primary-soft d-inline-flex justify-content-center align-items-center rounded-circle mb-3" style="width: 80px; height: 80px;">
+                    <i class="bi bi-search fs-1 text-primary-custom"></i>
+                </div>
+                <h3 class="fw-bold text-dark mb-2">Acompanhe seu Pet</h3>
+                <p class="text-secondary small px-3">Digite o código de agendamento que você recebeu do petshop para rastrear o status do seu amiguinho em tempo real.</p>
+            </section>
+
+            <section class="px-4 mt-2">
+                <div class="card border-0 shadow-sm rounded-4 p-4 border border-light">
+                    <form id="formBuscaJornada">
+                        <div class="mb-3">
+                            <label for="codigoBusca" class="form-label small fw-bold text-secondary">Código do Agendamento</label>
+                            <input type="number" id="codigoBusca" class="form-control form-control-lg rounded-3 text-center fw-bold text-dark" placeholder="Ex: 3" required>
+                        </div>
+                        <div id="erroBusca" class="alert alert-danger d-none rounded-3 py-2 small text-center" role="alert"></div>
+                        <button type="submit" class="btn btn-primary-custom w-100 rounded-pill py-3 fw-bold shadow-sm d-flex justify-content-center align-items-center gap-2">
+                            <i class="bi bi-geo-alt-fill"></i> Rastrear Meu Pet
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <p class="small text-secondary mb-0">Quer testar o rastreamento?</p>
+                    <a href="?demo=true" class="small text-primary-custom fw-bold text-decoration-none">
+                        💡 Visualizar uma demonstração
+                    </a>
+                </div>
+            </section>
+        </div>
 
     </div>
 
