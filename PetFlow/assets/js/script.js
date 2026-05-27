@@ -866,7 +866,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (containerBotoes) {
-            const isApenasBanho = !(agendamento.tipo_servico || '').toLowerCase().includes('tosa');
+            const tipoServicoLower = (agendamento.tipo_servico || '').toLowerCase();
+            const temBanho = tipoServicoLower.includes('banho');
+            const temTosa = tipoServicoLower.includes('tosa');
             let botoesHTML = '';
 
             // 1. Chegou no Petshop (Aguardando)
@@ -885,22 +887,24 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // 2. Iniciar Banho (Em atendimento)
-            if (ultimaEtapa === 'Banho Iniciado') {
-                botoesHTML += `
-                    <button class="btn text-start border rounded-3 fw-bold shadow-sm btn-status-opcao" style="color: #D97706; background-color: #FEF3C7; border-color: #FCD34D !important;" data-status="Em atendimento" data-etapa="Banho Iniciado">
-                        🚿 Iniciar Banho <small class="text-muted fw-normal">(Atual)</small>
-                    </button>
-                `;
-            } else {
-                botoesHTML += `
-                    <button class="btn btn-light text-start border rounded-3 fw-semibold text-secondary btn-status-opcao" data-status="Em atendimento" data-etapa="Banho Iniciado">
-                        🚿 Iniciar Banho
-                    </button>
-                `;
+            if (temBanho) {
+                if (ultimaEtapa === 'Banho Iniciado') {
+                    botoesHTML += `
+                        <button class="btn text-start border rounded-3 fw-bold shadow-sm btn-status-opcao" style="color: #D97706; background-color: #FEF3C7; border-color: #FCD34D !important;" data-status="Em atendimento" data-etapa="Banho Iniciado">
+                            🚿 Iniciar Banho <small class="text-muted fw-normal">(Atual)</small>
+                        </button>
+                    `;
+                } else {
+                    botoesHTML += `
+                        <button class="btn btn-light text-start border rounded-3 fw-semibold text-secondary btn-status-opcao" data-status="Em atendimento" data-etapa="Banho Iniciado">
+                            🚿 Iniciar Banho
+                        </button>
+                    `;
+                }
             }
 
-            // 3. Iniciar Secagem ou Tosa (Em atendimento)
-            if (isApenasBanho) {
+            // 3. Iniciar Secagem (Apenas Banho - Banho sem Tosa)
+            if (temBanho && !temTosa) {
                 if (ultimaEtapa === 'Secagem Iniciada') {
                     botoesHTML += `
                         <button class="btn text-start border rounded-3 fw-bold shadow-sm btn-status-opcao" style="color: #D97706; background-color: #FEF3C7; border-color: #FCD34D !important;" data-status="Em atendimento" data-etapa="Secagem Iniciada">
@@ -914,7 +918,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         </button>
                     `;
                 }
-            } else {
+            }
+
+            // 4. Iniciar Tosa (Serviço tem Tosa)
+            if (temTosa) {
                 if (ultimaEtapa === 'Tosa Iniciada') {
                     botoesHTML += `
                         <button class="btn text-start border rounded-3 fw-bold shadow-sm btn-status-opcao" style="color: #D97706; background-color: #FEF3C7; border-color: #FCD34D !important;" data-status="Em atendimento" data-etapa="Tosa Iniciada">

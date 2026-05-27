@@ -147,88 +147,107 @@
             const horaSecagem = secagemLog ? formatarHora(secagemLog.horario_atualizacao) : '';
             const horaPronto = prontoLog ? formatarHora(prontoLog.horario_atualizacao) : '';
 
-            // Configurar 5 etapas
             const tipoServico = agendamento.tipo_servico || '';
-            const isApenasBanho = !tipoServico.toLowerCase().includes('tosa');
+            const tipoServicoLower = tipoServico.toLowerCase();
+            const temBanho = tipoServicoLower.includes('banho');
+            const temTosa = tipoServicoLower.includes('tosa');
             const status = agendamento.status_atual;
 
-            let stages = [
-                { title: 'Chegou no Petshop', class: '', desc: 'Aguardando...' },
-                { title: 'Aguardando Vez', class: '', desc: 'Aguardando...' },
-                { title: 'Banho Iniciado', class: '', desc: 'Aguardando...' },
-                { title: isApenasBanho ? 'Secagem' : 'Secagem e Tosa', class: '', desc: 'Aguardando...' },
-                { title: 'Pronto para buscar!', class: '', desc: 'Avisaremos quando finalizar.' }
-            ];
+            let stages = [];
+            stages.push({ key: 'Chegou no Petshop', title: 'Chegou no Petshop' });
+            stages.push({ key: 'Aguardando Vez', title: 'Aguardando Vez' });
 
-            // Etapa 1: Chegou no Petshop
-            stages[0].class = 'completed';
-            stages[0].desc = horaChegou ? `${horaChegou} • Recebido com muita festa!` : 'Recebido com muita festa!';
+            if (temBanho) {
+                stages.push({ key: 'Banho Iniciado', title: 'Banho Iniciado' });
+            }
 
-            // Etapa 2: Aguardando Vez
-            if (status === 'Aguardando') {
-                stages[1].class = 'active';
-                stages[1].desc = horaChegou ? `${horaChegou} • Aguardando na recepção.` : 'Aguardando na recepção.';
+            if (temTosa) {
+                stages.push({ key: 'Tosa Iniciada', title: temBanho ? 'Secagem e Tosa' : 'Tosa Iniciada' });
+            } else if (temBanho) {
+                stages.push({ key: 'Secagem Iniciada', title: 'Secagem' });
             } else {
-                stages[1].class = 'completed';
-                stages[1].desc = horaChegou ? `${horaChegou} • Aguardando na recepção.` : 'Aguardando na recepção.';
+                // fallback to default if neither matched to keep it clean
+                stages.push({ key: 'Banho Iniciado', title: 'Banho Iniciado' });
+                stages.push({ key: 'Tosa Iniciada', title: 'Secagem e Tosa' });
             }
 
-            // Etapa 3: Banho Iniciado
+            stages.push({ key: 'Pronto para buscar!', title: 'Pronto para buscar!' });
+
+            // Determine activeIndex
+            let activeIndex = -1;
             if (status === 'Aguardando') {
-                stages[2].class = '';
-                stages[2].desc = 'Aguardando...';
-            } else if (status === 'Em atendimento') {
-                if ((isApenasBanho && !secagemLog) || (!isApenasBanho && !tosaLog)) {
-                    stages[2].class = 'active';
-                    stages[2].desc = horaBanho ? `${horaBanho} • Banho relaxante iniciado.` : 'Banho relaxante iniciado.';
-                } else {
-                    stages[2].class = 'completed';
-                    stages[2].desc = horaBanho ? `${horaBanho} • Banho relaxante finalizado.` : 'Banho relaxante finalizado.';
-                }
+                activeIndex = stages.findIndex(s => s.key === 'Aguardando Vez');
             } else if (status === 'Finalizado') {
-                stages[2].class = 'completed';
-                stages[2].desc = horaBanho ? `${horaBanho} • Banho relaxante finalizado.` : 'Banho relaxante finalizado.';
-            }
-
-            // Etapa 4: Secagem ou Secagem e Tosa
-            if (status === 'Aguardando') {
-                stages[3].class = '';
-                stages[3].desc = 'Aguardando...';
+                activeIndex = stages.findIndex(s => s.key === 'Pronto para buscar!');
             } else if (status === 'Em atendimento') {
-                if (isApenasBanho) {
-                    if (secagemLog) {
-                        stages[3].class = 'active';
-                        stages[3].desc = horaSecagem ? `${horaSecagem} • Processo de secagem iniciado.` : 'Processo de secagem iniciado.';
-                    } else {
-                        stages[3].class = '';
-                        stages[3].desc = 'Aguardando...';
-                    }
+                const validHistory = historico.filter(h => stages.some(s => s.key === h.etapa_jornada));
+                if (validHistory.length > 0) {
+                    const lastLoggedKey = validHistory[validHistory.length - 1].etapa_jornada;
+                    activeIndex = stages.findIndex(s => s.key === lastLoggedKey);
                 } else {
-                    if (tosaLog) {
-                        stages[3].class = 'active';
-                        stages[3].desc = horaTosa ? `${horaTosa} • Processo de secagem e tosa iniciado.` : 'Processo de secagem e tosa iniciado.';
-                    } else {
-                        stages[3].class = '';
-                        stages[3].desc = 'Aguardando...';
-                    }
-                }
-            } else if (status === 'Finalizado') {
-                stages[3].class = 'completed';
-                if (isApenasBanho) {
-                    stages[3].desc = horaPronto ? `${horaPronto} • Pelagem seca.` : (horaSecagem ? `${horaSecagem} • Pelagem seca.` : 'Pelagem seca.');
-                } else {
-                    stages[3].desc = horaPronto ? `${horaPronto} • Pelagem seca e tosa finalizada.` : (horaTosa ? `${horaTosa} • Pelagem seca e tosa finalizada.` : 'Pelagem seca e tosa finalizada.');
+                    // fallback
+                    activeIndex = temBanho ? stages.findIndex(s => s.key === 'Banho Iniciado') : stages.findIndex(s => s.key === 'Tosa Iniciada');
                 }
             }
 
-            // Etapa 5: Pronto para buscar!
-            if (status === 'Finalizado') {
-                stages[4].class = 'active';
-                stages[4].desc = horaPronto ? `${horaPronto} • Cheiroso e esperando você!` : 'Pronto para buscar!';
-            } else {
-                stages[4].class = '';
-                stages[4].desc = 'Avisaremos quando finalizar.';
-            }
+            // Map each stage class and desc
+            stages = stages.map((stg, i) => {
+                let stgClass = '';
+                let stgDesc = 'Aguardando...';
+
+                if (i < activeIndex) {
+                    stgClass = 'completed';
+                } else if (i === activeIndex) {
+                    stgClass = 'active';
+                }
+
+                if (stg.key === 'Chegou no Petshop') {
+                    stgClass = 'completed'; // Always completed
+                    stgDesc = horaChegou ? `${horaChegou} • Recebido com muita festa!` : 'Recebido com muita festa!';
+                } else if (stg.key === 'Aguardando Vez') {
+                    if (stgClass === 'active' || stgClass === 'completed') {
+                        stgDesc = horaChegou ? `${horaChegou} • Aguardando na recepção.` : 'Aguardando na recepção.';
+                    }
+                } else if (stg.key === 'Banho Iniciado') {
+                    if (stgClass === 'active') {
+                        stgDesc = horaBanho ? `${horaBanho} • Banho relaxante iniciado.` : 'Banho relaxante iniciado.';
+                    } else if (stgClass === 'completed') {
+                        stgDesc = horaBanho ? `${horaBanho} • Banho relaxante finalizado.` : 'Banho relaxante finalizado.';
+                    }
+                } else if (stg.key === 'Secagem Iniciada') {
+                    if (stgClass === 'active') {
+                        stgDesc = horaSecagem ? `${horaSecagem} • Processo de secagem iniciado.` : 'Processo de secagem iniciado.';
+                    } else if (stgClass === 'completed') {
+                        stgDesc = horaPronto || horaSecagem ? `${horaPronto || horaSecagem} • Pelagem seca.` : 'Pelagem seca.';
+                    }
+                } else if (stg.key === 'Tosa Iniciada') {
+                    if (stgClass === 'active') {
+                        if (temBanho) {
+                            stgDesc = horaTosa ? `${horaTosa} • Processo de secagem e tosa iniciado.` : 'Processo de secagem e tosa iniciado.';
+                        } else {
+                            stgDesc = horaTosa ? `${horaTosa} • Processo de tosa iniciado.` : 'Processo de tosa iniciado.';
+                        }
+                    } else if (stgClass === 'completed') {
+                        if (temBanho) {
+                            stgDesc = horaPronto || horaTosa ? `${horaPronto || horaTosa} • Pelagem seca e tosa finalizada.` : 'Pelagem seca e tosa finalizada.';
+                        } else {
+                            stgDesc = horaPronto || horaTosa ? `${horaPronto || horaTosa} • Tosa finalizada.` : 'Tosa finalizada.';
+                        }
+                    }
+                } else if (stg.key === 'Pronto para buscar!') {
+                    if (stgClass === 'active') {
+                        stgDesc = horaPronto ? `${horaPronto} • Cheiroso e esperando você!` : 'Pronto para buscar!';
+                    } else {
+                        stgDesc = 'Avisaremos quando finalizar.';
+                    }
+                }
+
+                return {
+                    ...stg,
+                    class: stgClass,
+                    desc: stgDesc
+                };
+            });
 
             // Renderizar Timeline HTML
             const elTimeline = document.getElementById('timelineContainer');
@@ -333,7 +352,7 @@
             const nome = urlParams.get('pet') || 'Rex';
             const raca = urlParams.get('raca') || 'Golden Retriever';
             const tipo = urlParams.get('tipo') || 'cachorro';
-            const servico = urlParams.get('servico') || 'Apenas Banho'; // default to bath-only if name is Rex/default mock
+            const servico = urlParams.get('servico') || 'Apenas Banho'; 
 
             const elNome = document.getElementById('nomePet');
             if (elNome) elNome.innerText = nome;
@@ -353,14 +372,20 @@
                 }
             }
 
+            const temBanho = servico.toLowerCase().includes('banho');
+            const temTosa = servico.toLowerCase().includes('tosa');
+
             const elBadge = document.getElementById('statusBadge');
             if (elBadge) {
-                elBadge.className = 'badge rounded-pill px-4 py-2 mt-2 shadow-sm badge-warning-custom';
-                elBadge.innerText = '🔄 Status: No banho';
+                elBadge.className = 'badge rounded-pill px-4 py-2 mt-2 shadow-sm';
+                if (temBanho) {
+                    elBadge.style.cssText = 'background-color: #FEF3C7; color: #D97706;';
+                    elBadge.innerText = '🚿 Status: No banho / serviço';
+                } else {
+                    elBadge.style.cssText = 'background-color: #FEF3C7; color: #D97706;';
+                    elBadge.innerText = '✂️ Status: Na tosa / serviço';
+                }
             }
-
-            const isApenasBanho = !servico.toLowerCase().includes('tosa');
-            const etapaQuatroTitulo = isApenasBanho ? 'Secagem' : 'Secagem e Tosa';
 
             // Se estiver em modo demonstração, renderizar o seletor de serviço simulado
             let elDemoSelector = document.getElementById('demoSelectorContainer');
@@ -368,41 +393,46 @@
                 elDemoSelector = document.createElement('div');
                 elDemoSelector.id = 'demoSelectorContainer';
                 elDemoSelector.className = 'd-flex justify-content-center gap-2 mt-3 px-4';
-                elDemoSelector.innerHTML = `
-                    <a href="?demo=true&servico=Apenas Banho" class="btn btn-sm rounded-pill px-3 fw-bold ${isApenasBanho ? 'btn-secondary text-white' : 'btn-outline-secondary'}" style="font-size: 0.75rem;">Simular Apenas Banho</a>
-                    <a href="?demo=true&servico=Banho e Tosa Completa" class="btn btn-sm rounded-pill px-3 fw-bold ${!isApenasBanho ? 'btn-secondary text-white' : 'btn-outline-secondary'}" style="font-size: 0.75rem;">Simular Banho e Tosa</a>
-                `;
                 const headerSection = document.querySelector('section.text-center');
                 if (headerSection) {
                     headerSection.appendChild(elDemoSelector);
                 }
             }
 
-            // Renderizar Timeline estática de exemplo
+            if (elDemoSelector) {
+                elDemoSelector.innerHTML = `
+                    <a href="?demo=true&servico=Apenas Banho" class="btn btn-sm rounded-pill px-3 fw-bold ${temBanho && !temTosa ? 'btn-secondary text-white' : 'btn-outline-secondary'}" style="font-size: 0.75rem;">Simular Apenas Banho</a>
+                    <a href="?demo=true&servico=Banho e Tosa Completa" class="btn btn-sm rounded-pill px-3 fw-bold ${temBanho && temTosa ? 'btn-secondary text-white' : 'btn-outline-secondary'}" style="font-size: 0.75rem;">Simular Banho e Tosa</a>
+                    <a href="?demo=true&servico=Apenas Tosa" class="btn btn-sm rounded-pill px-3 fw-bold ${!temBanho && temTosa ? 'btn-secondary text-white' : 'btn-outline-secondary'}" style="font-size: 0.75rem;">Simular Apenas Tosa</a>
+                `;
+            }
+
+            // Build stages list
+            let mockStages = [];
+            mockStages.push({ title: 'Chegou no Petshop', class: 'completed', desc: '09:05 • Recebido com muita festa!' });
+            mockStages.push({ title: 'Aguardando Vez', class: 'completed', desc: '09:15 • Brincando na área comum.' });
+
+            if (temBanho) {
+                mockStages.push({ title: 'Banho Iniciado', class: 'active', desc: '09:40 • Usando shampoo hipoalergênico.' });
+            }
+
+            if (temTosa) {
+                mockStages.push({ title: temBanho ? 'Secagem e Tosa' : 'Tosa Iniciada', class: temBanho ? '' : 'active', desc: temBanho ? 'Aguardando...' : '09:40 • Tosa higiênica em andamento.' });
+            } else if (temBanho) {
+                mockStages.push({ title: 'Secagem', class: '', desc: 'Aguardando...' });
+            }
+
+            mockStages.push({ title: 'Pronto para buscar!', class: '', desc: 'Avisaremos quando finalizar.' });
+
+            // Render mock stages to timeline
             const elTimeline = document.getElementById('timelineContainer');
             if (elTimeline) {
-                elTimeline.innerHTML = `
-                    <li class="timeline-item completed">
-                        <h6 class="fw-bold mb-1 text-dark">Chegou no Petshop</h6>
-                        <p class="small text-secondary mb-0">09:05 • Recebido com muita festa!</p>
+                elTimeline.innerHTML = mockStages.map(stg => `
+                    <li class="timeline-item ${stg.class}">
+                        <h6 class="${stg.class === '' ? 'fw-semibold text-muted' : 'fw-bold text-dark'} mb-1">${stg.title}</h6>
+                        <p class="small ${stg.class === '' ? 'text-muted' : 'text-secondary'} mb-0">${stg.desc}</p>
                     </li>
-                    <li class="timeline-item completed">
-                        <h6 class="fw-bold mb-1 text-dark">Aguardando Vez</h6>
-                        <p class="small text-secondary mb-0">09:15 • Brincando na área comum.</p>
-                    </li>
-                    <li class="timeline-item active">
-                        <h6 class="fw-bold mb-1 text-dark">Banho Iniciado</h6>
-                        <p class="small text-secondary mb-0">09:40 • Usando shampoo hipoalergênico.</p>
-                    </li>
-                    <li class="timeline-item">
-                        <h6 class="fw-semibold mb-1 text-muted">${etapaQuatroTitulo}</h6>
-                        <p class="small text-muted mb-0">Aguardando...</p>
-                    </li>
-                    <li class="timeline-item">
-                        <h6 class="fw-semibold mb-1 text-muted">Pronto para buscar!</h6>
-                        <p class="small text-muted mb-0">Avisaremos quando finalizar.</p>
-                    </li>
-                `;
+                `).join('');
             }
 
             const elCarouselInner = document.getElementById('carouselInnerContainer');
@@ -410,7 +440,7 @@
             const elIndicators = document.getElementById('carouselIndicatorsContainer');
 
             if (elCarouselInner) {
-                if (isApenasBanho) {
+                if (temBanho && !temTosa) {
                     elCarouselInner.innerHTML = `
                         <div class="carousel-item active">
                             <div class="alert bg-primary-soft border-0 p-4 d-flex gap-3 align-items-start mb-0 h-100">
@@ -431,7 +461,7 @@
                             </div>
                         </div>
                     `;
-                } else {
+                } else if (temBanho && temTosa) {
                     elCarouselInner.innerHTML = `
                         <div class="carousel-item active">
                             <div class="alert bg-primary-soft border-0 p-4 d-flex gap-3 align-items-start mb-0 h-100">
@@ -448,6 +478,27 @@
                                 <div>
                                     <h6 class="fw-bold mb-1" style="color: #D97706;">Atualização</h6>
                                     <p class="small text-dark mb-0">Banho finalizado com sucesso! Ele adorou a água morna e se comportou super bem. Indo secar e tosar agora.</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    elCarouselInner.innerHTML = `
+                        <div class="carousel-item active">
+                            <div class="alert bg-primary-soft border-0 p-4 d-flex gap-3 align-items-start mb-0 h-100">
+                                <span class="fs-3">💡</span>
+                                <div>
+                                    <h6 class="fw-bold text-primary-custom mb-1">Nota do Tosador</h6>
+                                    <p class="small text-dark mb-0">O ${nome} está super calmo hoje. Iniciando a tosa com bastante carinho e atenção.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <div class="alert bg-warning-soft border-0 p-4 d-flex gap-3 align-items-start mb-0 h-100" style="background-color: #FFFBEB;">
+                                <span class="fs-3">✂️</span>
+                                <div>
+                                    <h6 class="fw-bold mb-1" style="color: #D97706;">Atualização</h6>
+                                    <p class="small text-dark mb-0">Tosa higiênica em andamento! O corte está ficando ótimo e ele está muito tranquilo na bancada.</p>
                                 </div>
                             </div>
                         </div>
